@@ -22,6 +22,8 @@ export default function WorkerDashboard() {
   } = useOffline();
   const [callList, setCallList] = useState([]);
   const [filter, setFilter] = useState('all');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [cohortFilter, setCohortFilter] = useState('all');
   const [simpleMode, setSimpleMode] = useState(true);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -142,6 +144,38 @@ export default function WorkerDashboard() {
     }
     return defaultLabel;
   };
+
+  const getPatientVitalsSummary = (patient) => {
+    for (const flag of patient.flags || []) {
+      const tv = flag.triggering_values || {};
+      if (tv.systolic && tv.diastolic) {
+        return `BP: ${tv.systolic}/${tv.diastolic} mmHg`;
+      }
+      if (Array.isArray(tv.systolicTrend) && tv.systolicTrend.length > 0) {
+        return `Trend: ${tv.systolicTrend.join(' → ')} mmHg`;
+      }
+      if (tv.randomGlucose || tv.fastingGlucose) {
+        return `Glucose: ${tv.randomGlucose || tv.fastingGlucose} mg/dL`;
+      }
+      if (tv.dangerSigns && Array.isArray(tv.dangerSigns) && tv.dangerSigns.length > 0) {
+        return `Signs: ${tv.dangerSigns.join(', ')}`;
+      }
+    }
+    return null;
+  };
+
+  const displayedPatients = callList.filter((patient) => {
+    if (cohortFilter !== 'all' && patient.cohort !== cohortFilter) return false;
+    if (searchQuery.trim()) {
+      const q = searchQuery.toLowerCase().trim();
+      const nameHi = getPatientDisplayName(patient.pseudonym, 'hi').toLowerCase();
+      const nameEn = getPatientDisplayName(patient.pseudonym, 'en').toLowerCase();
+      const pseudo = (patient.pseudonym || '').toLowerCase();
+      const village = (patient.village_or_ward || '').toLowerCase();
+      return nameHi.includes(q) || nameEn.includes(q) || pseudo.includes(q) || village.includes(q);
+    }
+    return true;
+  });
 
   return (
     <div className="page-container">
@@ -367,24 +401,96 @@ export default function WorkerDashboard() {
         </>
       )}
 
-      {/* Prioritized Patient Call List */}
-      {loading ? (
-        <div className="loading-state">
-          {lang === 'hi' ? 'प्राथमिकता सुबह की कॉल सूची लोड हो रही है...' : 'Loading prioritized morning call list...'}
+      {/* Live Interactive Search & Program Filter Toolbar */}
+      <div className="call-list-toolbar">
+        <div className="search-box-wrap">
+          <span className="search-icon">🔍</span>
+          <input
+            type="text"
+            className="search-input-clean"
+            placeholder={lang === 'hi' ? 'मरीज़ का नाम, उपनाम या गाँव खोजें...' : 'Search patient name, ID, or village...'}
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+          />
+          {searchQuery && (
+            <button
+              type="button"
+              className="btn-clear-search"
+              onClick={() => setSearchQuery('')}
+              title="Clear search"
+            >
+              ✕
+            </button>
+          )}
         </div>
-      ) : callList.length === 0 ? (
+
+        <div className="cohort-pills-bar" role="group" aria-label="Program Filter">
+          <button
+            type="button"
+            className={`cohort-pill-btn ${cohortFilter === 'all' ? 'is-active' : ''}`}
+            onClick={() => setCohortFilter('all')}
+          >
+            {lang === 'hi' ? 'सभी कार्यक्रम' : 'All Programs'} ({callList.length})
+          </button>
+          <button
+            type="button"
+            className={`cohort-pill-btn ${cohortFilter === 'antenatal' ? 'is-active' : ''}`}
+            onClick={() => setCohortFilter('antenatal')}
+          >
+            🤰 {lang === 'hi' ? 'गर्भवती (ANC)' : 'Antenatal'}
+          </button>
+          <button
+            type="button"
+            className={`cohort-pill-btn ${cohortFilter === 'hypertension' ? 'is-active' : ''}`}
+            onClick={() => setCohortFilter('hypertension')}
+          >
+            🫀 {lang === 'hi' ? 'रक्तचाप (HTN)' : 'Hypertension'}
+          </button>
+          <button
+            type="button"
+            className={`cohort-pill-btn ${cohortFilter === 'diabetes' ? 'is-active' : ''}`}
+            onClick={() => setCohortFilter('diabetes')}
+          >
+            🩸 {lang === 'hi' ? 'मधुमेह (Sugar)' : 'Diabetes'}
+          </button>
+        </div>
+      </div>
+
+      {/* Prioritized Patient Call List with Shimmer Skeletons */}
+      {loading ? (
+        <div className="skeleton-cards-stack">
+          {[1, 2, 3].map((n) => (
+            <div key={n} className="skeleton-card">
+              <div className="skeleton-header-row">
+                <div className="skeleton-avatar skeleton-shimmer"></div>
+                <div className="skeleton-meta-col">
+                  <div className="skeleton-line skeleton-title skeleton-shimmer"></div>
+                  <div className="skeleton-line skeleton-sub skeleton-shimmer"></div>
+                </div>
+              </div>
+              <div className="skeleton-line skeleton-body skeleton-shimmer"></div>
+              <div className="skeleton-actions-row">
+                <div className="skeleton-btn skeleton-shimmer"></div>
+                <div className="skeleton-btn skeleton-shimmer"></div>
+                <div className="skeleton-btn skeleton-shimmer"></div>
+              </div>
+            </div>
+          ))}
+        </div>
+      ) : displayedPatients.length === 0 ? (
         <div className="empty-state">
-          <h3>{lang === 'hi' ? 'इस श्रेणी में कोई मरीज़ नहीं है' : 'No patients matching current filter'}</h3>
-          <p>{lang === 'hi' ? 'इस श्रेणी के सभी मरीज़ों की जांच पूरी है।' : 'All follow-ups for this category are up to date.'}</p>
+          <h3>{lang === 'hi' ? 'कोई मरीज़ नहीं मिला' : 'No matching patients found'}</h3>
+          <p>{lang === 'hi' ? 'खोज या फ़िल्टर बदलकर दोबारा प्रयास करें।' : 'Try adjusting your search query or cohort filter.'}</p>
         </div>
       ) : (
         <div className="call-list-grid">
-          {callList.map((patient) => {
+          {displayedPatients.map((patient) => {
             const hasClinical = patient.priorityRank === 1;
             const hasOverdue = patient.priorityRank === 2 || patient.priorityRank === 3;
             const displayName = getPatientDisplayName(patient.pseudonym, lang);
             const localizedVillage = getLocalizedVillage(patient.village_or_ward, lang);
             const localizedAge = getLocalizedAgeBand(patient.age_band, lang);
+            const vitalsTag = getPatientVitalsSummary(patient);
 
             return (
               <div
@@ -409,16 +515,32 @@ export default function WorkerDashboard() {
                               title={lang === 'hi' ? 'आवाज़ में सुनें' : 'Listen audio summary'}
                               aria-label="Listen audio summary"
                             >
-                              {speakingPatientId === patient.patient_id ? '⏹️ बंद करें' : '🔊 सुनो'}
+                              {speakingPatientId === patient.patient_id ? (
+                                <span className="soundwave-wrap">
+                                  <span className="wave-bar wb1"></span>
+                                  <span className="wave-bar wb2"></span>
+                                  <span className="wave-bar wb3"></span>
+                                  <span className="sound-text">{lang === 'hi' ? 'बोल रहे हैं...' : 'Speaking...'}</span>
+                                </span>
+                              ) : (
+                                <span>🔊 {lang === 'hi' ? 'सुनो' : 'Listen'}</span>
+                              )}
                             </button>
                           </div>
-                          <span className="patient-cohort-simple">
-                            {patient.cohort === 'antenatal'
-                              ? t('cohort_antenatal_label')
-                              : patient.cohort === 'hypertension'
-                              ? t('cohort_hypertension_label')
-                              : t('cohort_diabetes_label')}
-                          </span>
+                          <div className="patient-badges-subline">
+                            <span className="patient-cohort-simple">
+                              {patient.cohort === 'antenatal'
+                                ? t('cohort_antenatal_label')
+                                : patient.cohort === 'hypertension'
+                                ? t('cohort_hypertension_label')
+                                : t('cohort_diabetes_label')}
+                            </span>
+                            {vitalsTag && (
+                              <span className={`vital-tag-pill ${hasClinical ? 'vital-danger-tag' : 'vital-info-tag'}`}>
+                                ⚡ {vitalsTag}
+                              </span>
+                            )}
+                          </div>
                         </div>
                       </div>
 

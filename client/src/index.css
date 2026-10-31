@@ -585,6 +585,285 @@ body {
 }
 
 /* ============================================================
+   LIVE CALL LIST TOOLBAR (SEARCH & COHORT TABS)
+   ============================================================ */
+.call-list-toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.85rem;
+  margin-bottom: 1.25rem;
+  flex-wrap: wrap;
+  background: var(--color-card-bg);
+  padding: 0.65rem 1rem;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border);
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.03);
+}
+
+.search-box-wrap {
+  display: flex;
+  align-items: center;
+  position: relative;
+  flex: 1 1 280px;
+  max-width: 450px;
+}
+
+.search-icon {
+  position: absolute;
+  left: 0.75rem;
+  font-size: 0.85rem;
+  color: var(--color-text-muted);
+  pointer-events: none;
+}
+
+.search-input-clean {
+  width: 100%;
+  padding: 0.48rem 2.2rem 0.48rem 2.2rem;
+  border-radius: 9999px;
+  border: 1px solid var(--color-border);
+  background: var(--color-bg);
+  color: var(--color-text-main);
+  font-size: 0.84rem;
+  transition: all 0.2s ease;
+  outline: none;
+}
+
+.search-input-clean:focus {
+  border-color: #059669;
+  background: var(--color-card-bg);
+  box-shadow: 0 0 0 3px rgba(5, 150, 105, 0.15);
+}
+
+.btn-clear-search {
+  position: absolute;
+  right: 0.65rem;
+  background: transparent;
+  border: none;
+  color: var(--color-text-muted);
+  font-size: 0.75rem;
+  cursor: pointer;
+  padding: 0.2rem;
+  border-radius: 50%;
+}
+
+.cohort-pills-bar {
+  display: flex;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+}
+
+.cohort-pill-btn {
+  padding: 0.35rem 0.75rem;
+  border-radius: 9999px;
+  border: 1px solid var(--color-border);
+  background: var(--color-bg);
+  color: var(--color-text-muted);
+  font-size: 0.76rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+
+.cohort-pill-btn:hover:not(.is-active) {
+  border-color: var(--color-secondary);
+  color: var(--color-text-main);
+  background: var(--color-card-bg);
+}
+
+.cohort-pill-btn.is-active {
+  background: #059669;
+  color: #ffffff;
+  border-color: #047857;
+  box-shadow: 0 1px 4px rgba(5, 150, 105, 0.3);
+  font-weight: 700;
+}
+
+[data-theme="dark"] .cohort-pill-btn.is-active {
+  background: #10b981;
+  color: #090e17;
+  border-color: #34d399;
+}
+
+/* ============================================================
+   SHIMMER SKELETON LOADER
+   ============================================================ */
+.skeleton-cards-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 1.1rem;
+}
+
+.skeleton-card {
+  background: var(--color-card-bg);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: 1.4rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+}
+
+.skeleton-shimmer {
+  background: linear-gradient(90deg, #f1f5f9 0%, #e2e8f0 50%, #f1f5f9 100%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite linear;
+  border-radius: 6px;
+}
+
+[data-theme="dark"] .skeleton-shimmer {
+  background: linear-gradient(90deg, #131d2e 0%, #1e2c44 50%, #131d2e 100%);
+  background-size: 200% 100%;
+}
+
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+.skeleton-header-row {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+}
+
+.skeleton-avatar {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.skeleton-meta-col {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.skeleton-title {
+  height: 18px;
+  width: 45%;
+}
+
+.skeleton-sub {
+  height: 12px;
+  width: 30%;
+}
+
+.skeleton-body {
+  height: 38px;
+  width: 100%;
+}
+
+.skeleton-actions-row {
+  display: flex;
+  gap: 0.65rem;
+  margin-top: 0.4rem;
+}
+
+.skeleton-btn {
+  height: 36px;
+  width: 110px;
+  border-radius: 8px;
+}
+
+/* ============================================================
+   SOUNDWAVE VOICE ANIMATION (HIGH ACCESSIBILITY UX)
+   ============================================================ */
+.soundwave-wrap {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+}
+
+.wave-bar {
+  display: inline-block;
+  width: 3px;
+  background: #ffffff;
+  border-radius: 2px;
+  animation: wave-pulse 1s infinite ease-in-out;
+}
+
+.wb1 { height: 6px; animation-delay: 0s; }
+.wb2 { height: 12px; animation-delay: 0.2s; }
+.wb3 { height: 8px; animation-delay: 0.4s; }
+
+@keyframes wave-pulse {
+  0%, 100% { height: 4px; }
+  50% { height: 13px; }
+}
+
+.sound-text {
+  margin-left: 4px;
+  font-size: 0.72rem;
+}
+
+/* ============================================================
+   PATIENT CARD VITALS CHIP & ELEVATIONS
+   ============================================================ */
+.patient-badges-subline {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  margin-top: 0.2rem;
+}
+
+.vital-tag-pill {
+  font-size: 0.7rem;
+  font-weight: 800;
+  padding: 0.12rem 0.5rem;
+  border-radius: 9999px;
+  letter-spacing: 0.02em;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.2rem;
+}
+
+.vital-danger-tag {
+  background: #fee2e2;
+  color: #991b1b;
+  border: 1px solid #f87171;
+}
+
+.vital-info-tag {
+  background: #e0f2fe;
+  color: #0369a1;
+  border: 1px solid #7dd3fc;
+}
+
+[data-theme="dark"] .vital-danger-tag {
+  background: rgba(239, 68, 68, 0.2);
+  color: #fca5a5;
+  border-color: rgba(239, 68, 68, 0.4);
+}
+
+[data-theme="dark"] .vital-info-tag {
+  background: rgba(2, 132, 199, 0.2);
+  color: #7dd3fc;
+  border-color: rgba(2, 132, 199, 0.4);
+}
+
+/* Tactile micro-interaction on buttons */
+button:active, .btn:active {
+  transform: scale(0.97) !important;
+}
+
+/* Pulse animation on critical danger alerts */
+@keyframes pulse-danger-subtle {
+  0%, 100% {
+    box-shadow: 0 1px 3px rgba(15, 23, 42, 0.05);
+  }
+  50% {
+    box-shadow: 0 0 16px -2px rgba(220, 38, 38, 0.22);
+  }
+}
+
+/* ============================================================
    CALL LIST CARDS (PRIORITIZED FRONTLINE WORKER VIEW)
    ============================================================ */
 .call-list-grid {
@@ -599,17 +878,19 @@ body {
   border-radius: var(--radius-lg);
   padding: 1.4rem;
   box-shadow: var(--shadow-sm);
-  border-left: 6px solid #94a3b8;
-  transition: all 0.15s ease;
+  border-left: 4.5px solid #cbd5e1;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .patient-call-card:hover {
-  box-shadow: var(--shadow-md);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 22px -3px rgba(15, 23, 42, 0.08);
 }
 
 .patient-call-card.card-clinical-alert {
   border-left-color: var(--color-clinical-red);
   background: #fffcfc;
+  animation: pulse-danger-subtle 3.2s infinite ease-in-out;
 }
 
 .patient-call-card.card-overdue {
