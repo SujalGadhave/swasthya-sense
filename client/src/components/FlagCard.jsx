@@ -132,33 +132,38 @@ export default function FlagCard({ flag, onEscalate, onAcknowledge, isWorker = f
           </div>
         )}
 
-        <div className="flag-disclaimer">
-          {t('disclaimer_flag_text')}
+        {/* Global safety banner already states disclaimers; show inside card only for clinical supervision */}
+        {!isWorker && (
+          <div className="flag-disclaimer">
+            {t('disclaimer_flag_text')}
+          </div>
+        )}
+      </div>
+
+      {/* Action buttons (Only show on clinician view or acknowledge for non-clinical) */}
+      {(!isWorker || (!isClinical && onAcknowledge)) && (
+        <div className="flag-actions">
+          {!isWorker && isClinical && flag.status === 'active' && onEscalate && (
+            <button
+              type="button"
+              className="btn btn-escalate"
+              onClick={() => onEscalate(flag)}
+            >
+              {t('escalate_btn')}
+            </button>
+          )}
+
+          {!isClinical && flag.status === 'active' && onAcknowledge && (
+            <button
+              type="button"
+              className="btn btn-acknowledge"
+              onClick={() => onAcknowledge(flag.id)}
+            >
+              {t('acknowledge_btn')}
+            </button>
+          )}
         </div>
-      </div>
-
-      {/* Action buttons */}
-      <div className="flag-actions">
-        {isClinical && flag.status === 'active' && onEscalate && (
-          <button
-            type="button"
-            className="btn btn-escalate"
-            onClick={() => onEscalate(flag)}
-          >
-            {t('escalate_btn')}
-          </button>
-        )}
-
-        {!isClinical && flag.status === 'active' && onAcknowledge && (
-          <button
-            type="button"
-            className="btn btn-acknowledge"
-            onClick={() => onAcknowledge(flag.id)}
-          >
-            {t('acknowledge_btn')}
-          </button>
-        )}
-      </div>
+      )}
     </div>
   );
 }

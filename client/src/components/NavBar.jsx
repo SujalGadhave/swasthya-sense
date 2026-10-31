@@ -33,18 +33,24 @@ export default function NavBar() {
 
   return (
     <header className="navbar-container">
-      {/* Top Prototype & Safety Boundary Notice */}
+      {/* Top Clinical Safety Notice Ribbon */}
       <div className="safety-banner">
-        <span>{t('safety_banner')}</span>
+        <span className="safety-shield">🛡️</span>
+        <span className="safety-text">{t('safety_banner')}</span>
       </div>
 
       <nav className="navbar">
         <div className="navbar-brand">
           <Link to="/" className="brand-logo">
-            <span className="logo-icon">🌿</span>
+            <span className="logo-symbol">✚</span>
             <div className="brand-text">
-              <span className="brand-title">{t('brand_title')}</span>
-              <span className="brand-subtitle">{t('brand_subtitle')}</span>
+              <div className="brand-title-row">
+                <span className="brand-title">Swasthya<span className="brand-accent">Sense</span></span>
+                <span className="brand-gov-tag">ABDM</span>
+              </div>
+              <span className="brand-subtitle">
+                {lang === 'hi' ? 'प्राथमिक स्वास्थ्य प्रारंभिक चेतावनी प्रणाली' : 'Frontline Clinical Decision Support'}
+              </span>
             </div>
           </Link>
         </div>
@@ -85,7 +91,35 @@ export default function NavBar() {
         )}
 
         <div className="navbar-actions">
-          {/* Offline / Online Simulated Network Toggle */}
+          {/* Quick Demo Persona Switcher */}
+          <div className="segmented-role-switch" role="group" aria-label="Demo Role Switcher">
+            <button
+              type="button"
+              className={`role-tab-btn ${user?.role === 'worker' ? 'is-active' : ''}`}
+              onClick={() => handleQuickSwitch('worker1', 'Worker@123')}
+              title="Switch to ASHA Worker (Sunita Devi)"
+            >
+              👩‍⚕️ <span className="role-tab-text">{lang === 'hi' ? 'आशा' : 'ASHA'}</span>
+            </button>
+            <button
+              type="button"
+              className={`role-tab-btn ${user?.role === 'clinician' ? 'is-active' : ''}`}
+              onClick={() => handleQuickSwitch('dr_sharma', 'Doctor@123')}
+              title="Switch to Clinician (Dr. Rajesh Sharma)"
+            >
+              🩺 <span className="role-tab-text">{lang === 'hi' ? 'डॉक्टर' : 'Doctor'}</span>
+            </button>
+            <button
+              type="button"
+              className={`role-tab-btn ${user?.role === 'supervisor' ? 'is-active' : ''}`}
+              onClick={() => handleQuickSwitch('admin_anita', 'Admin@123')}
+              title="Switch to Supervisor (Anita Verma)"
+            >
+              📋 <span className="role-tab-text">{lang === 'hi' ? 'प्रभारी' : 'In-Charge'}</span>
+            </button>
+          </div>
+
+          {/* Network State Pill */}
           <button
             type="button"
             className={`network-toggle-btn ${isOffline ? 'btn-net-offline' : 'btn-net-online'}`}
@@ -99,11 +133,11 @@ export default function NavBar() {
             {isOffline ? (
               <span>📡 <strong className="net-status">{lang === 'hi' ? 'ऑफ़लाइन' : 'Offline'} ({queueCount})</strong></span>
             ) : (
-              <span>🟢 <span className="net-status">{lang === 'hi' ? 'ऑनलाइन' : 'Online'}</span></span>
+              <span><span className="online-dot"></span> <span className="net-status">{lang === 'hi' ? 'ऑनलाइन' : 'Online'}</span></span>
             )}
           </button>
 
-          {/* Language Selector: Clear Two-Pill Segmented Switcher (Zero Ambiguity) */}
+          {/* Language Selector: Clear Two-Pill Segmented Switcher */}
           <div className="language-selector-pills" role="group" aria-label="Language Selector">
             <button
               type="button"
@@ -111,7 +145,7 @@ export default function NavBar() {
               onClick={() => setLang('en')}
               title="Switch interface to English"
             >
-              English
+              EN
             </button>
             <button
               type="button"
@@ -119,7 +153,7 @@ export default function NavBar() {
               onClick={() => setLang('hi')}
               title="इंटरफ़ेस हिंदी में बदलें"
             >
-              हिंदी
+              हिं
             </button>
           </div>
 
@@ -132,48 +166,26 @@ export default function NavBar() {
             aria-label="Toggle Theme"
           >
             <span className="theme-toggle-icon">{theme === 'dark' ? '☀️' : '🌙'}</span>
-            <span className="theme-toggle-label">{theme === 'dark' ? (lang === 'hi' ? 'लाइट' : 'Light') : (lang === 'hi' ? 'डार्क' : 'Dark')}</span>
           </button>
-
-          {/* Quick Demo Persona Switcher */}
-          <div className="persona-switcher">
-            <span className="persona-label">{t('demo_role_label')}</span>
-            <button
-              className={`persona-btn ${user?.role === 'worker' ? 'current' : ''}`}
-              onClick={() => handleQuickSwitch('worker1', 'Worker@123')}
-              title="Switch to ASHA Worker (Sunita Devi)"
-            >
-              {lang === 'hi' ? '👩‍⚕️ आशा' : '👩‍⚕️ ASHA'}
-            </button>
-            <button
-              className={`persona-btn ${user?.role === 'clinician' ? 'current' : ''}`}
-              onClick={() => handleQuickSwitch('dr_sharma', 'Doctor@123')}
-              title="Switch to Clinician (Dr. Rajesh Sharma)"
-            >
-              {lang === 'hi' ? '🩺 डॉक्टर' : '🩺 Doctor'}
-            </button>
-            <button
-              className={`persona-btn ${user?.role === 'supervisor' ? 'current' : ''}`}
-              onClick={() => handleQuickSwitch('admin_anita', 'Admin@123')}
-              title="Switch to Supervisor (Anita Verma)"
-            >
-              {lang === 'hi' ? '📋 प्रभारी' : '📋 In-Charge'}
-            </button>
-          </div>
 
           {user && (
             <div className="user-profile">
-              <span className="user-badge" title={`Role: ${user.role}`}>
-                {lang === 'hi'
-                  ? user.username === 'worker1'
-                    ? 'सुनीता देवी (आशा)'
-                    : user.username === 'dr_sharma'
-                    ? 'डॉ. राजेश शर्मा (डॉक्टर)'
-                    : 'अनिता वर्मा (प्रभारी)'
-                  : user.full_name}
+              <span className="user-avatar-badge" title={`Role: ${user.role}`}>
+                <span className="user-initials">
+                  {user.username === 'worker1' ? 'SD' : user.username === 'dr_sharma' ? 'DR' : 'AV'}
+                </span>
+                <span className="user-name-label">
+                  {lang === 'hi'
+                    ? user.username === 'worker1'
+                      ? 'सुनीता देवी'
+                      : user.username === 'dr_sharma'
+                      ? 'डॉ. शर्मा'
+                      : 'अनिता वर्मा'
+                    : user.full_name.split(' ')[0]}
+                </span>
               </span>
-              <button onClick={handleLogout} className="btn-logout" title={t('sign_out')}>
-                {t('sign_out')}
+              <button onClick={handleLogout} className="btn-logout" title={t('sign_out')} aria-label={t('sign_out')}>
+                <span className="logout-icon">🚪</span>
               </button>
             </div>
           )}

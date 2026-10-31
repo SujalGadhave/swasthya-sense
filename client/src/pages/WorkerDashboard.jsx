@@ -145,105 +145,94 @@ export default function WorkerDashboard() {
 
   return (
     <div className="page-container">
-      <div className="page-header">
-        <div>
-          <h2>{t('worker_dash_title')}</h2>
-          <p className="page-subtitle">{t('worker_dash_subtitle')}</p>
-        </div>
-        <button
-          className="btn btn-secondary"
-          onClick={() => fetchCallList(filter)}
-          disabled={loading}
-        >
-          {t('refresh_list')}
-        </button>
-      </div>
-
       {toastMessage && <div className="alert alert-success">{toastMessage}</div>}
       {error && <div className="alert alert-error">{error}</div>}
 
-      {/* Frontline ASHA Welcome Banner & Simple Mode Switcher */}
-      <div className="asha-welcome-banner">
-        <div className="asha-welcome-left">
-          <span className="asha-avatar-circle">👩‍⚕️</span>
-          <div>
-            <h3 className="asha-greeting-text">{t('asha_greeting')}</h3>
-            <span className="asha-location-tag">{t('asha_tagline')}</span>
+      {/* Unified Executive Frontline Dashboard Header */}
+      <div className="dashboard-hero-header">
+        <div className="hero-left">
+          <div className="hero-avatar-wrap">
+            <span className="hero-avatar-emblem">👩‍⚕️</span>
+          </div>
+          <div className="hero-meta">
+            <div className="hero-title-row">
+              <h1 className="hero-title">{lang === 'hi' ? 'नमस्ते, सुनीता दीदी' : 'Namaste, Sunita Didi'}</h1>
+              <span className="hero-role-chip">{lang === 'hi' ? 'आशा कार्यकर्ता' : 'ASHA Frontline'}</span>
+            </div>
+            <p className="hero-subtitle">
+              <span>📍 Ward 3 · PHC Sitapur</span>
+              <span className="hero-sep">•</span>
+              <span>{lang === 'hi' ? 'आज की प्राथमिकता सुबह की फॉलो-अप कॉल सूची' : "Today's Prioritized Morning Call List"}</span>
+            </p>
           </div>
         </div>
 
-        <div className="asha-mode-switch-container">
+        <div className="hero-right">
+          {/* Integrated Offline / Sync Status Pill */}
+          {(isOffline || queueCount > 0) && (
+            <div className={`hero-sync-pill ${isOffline ? 'is-offline' : 'has-queue'}`}>
+              <span className="sync-pill-dot">{isOffline ? '📡' : '💾'}</span>
+              <span className="sync-pill-text">
+                {queueCount > 0
+                  ? `${queueCount} ${lang === 'hi' ? 'ऑफ़लाइन कतार' : 'queued'}`
+                  : (lang === 'hi' ? 'ऑफ़लाइन सक्रिय' : 'Offline Active')}
+              </span>
+              {queueCount > 0 && (
+                <button
+                  type="button"
+                  className="btn-hero-sync"
+                  onClick={async () => {
+                    const res = await syncQueue();
+                    if (res?.syncedCount > 0) fetchCallList(filter);
+                  }}
+                  disabled={syncing}
+                  title="Upload queued records to central server"
+                >
+                  {syncing ? '...' : (lang === 'hi' ? '🔄 सिंक' : '🔄 Sync')}
+                </button>
+              )}
+              <button
+                type="button"
+                className="btn-hero-net-toggle"
+                onClick={toggleOffline}
+                title={isOffline ? 'Switch Online' : 'Switch Offline'}
+              >
+                {isOffline ? '🌐 Online' : '📡 Offline'}
+              </button>
+            </div>
+          )}
+
+          {/* Segmented View Mode Switcher */}
+          <div className="view-mode-pill-toggle" role="group" aria-label="View Mode">
+            <button
+              type="button"
+              className={`view-pill-btn ${simpleMode ? 'is-selected' : ''}`}
+              onClick={() => setSimpleMode(true)}
+              title="Clean frontline touch cards"
+            >
+              ✨ {lang === 'hi' ? 'सरल आशा' : 'Simple ASHA'}
+            </button>
+            <button
+              type="button"
+              className={`view-pill-btn ${!simpleMode ? 'is-selected' : ''}`}
+              onClick={() => setSimpleMode(false)}
+              title="Technical protocol metrics"
+            >
+              📊 {lang === 'hi' ? 'विस्तृत' : 'Detailed'}
+            </button>
+          </div>
+
           <button
             type="button"
-            className={`asha-mode-btn ${simpleMode ? 'active-simple' : ''}`}
-            onClick={() => setSimpleMode(true)}
-            title="Simplified, large-touch visual interface for frontline field visits"
+            className="btn-refresh-clean"
+            onClick={() => fetchCallList(filter)}
+            disabled={loading}
+            title={lang === 'hi' ? 'सूची रीफ़्रेश करें' : 'Refresh list'}
           >
-            {t('asha_mode_simple')}
-          </button>
-          <button
-            type="button"
-            className={`asha-mode-btn ${!simpleMode ? 'active-detailed' : ''}`}
-            onClick={() => setSimpleMode(false)}
-            title="Technical protocol tables & detailed filters"
-          >
-            {t('asha_mode_detailed')}
+            🔄
           </button>
         </div>
       </div>
-
-      {/* Frontline Offline Sync Status Banner */}
-      {(isOffline || queueCount > 0) && (
-        <div className={`offline-sync-card ${isOffline ? 'mode-offline' : 'mode-queued'}`}>
-          <div className="offline-card-left">
-            <span className="offline-icon">📡</span>
-            <div className="offline-text-block">
-              <strong>
-                {isOffline
-                  ? (lang === 'hi' ? 'फ़ील्ड विज़िट ऑफ़लाइन मोड सक्रिय' : 'Field Visit Offline Mode Active')
-                  : (lang === 'hi' ? 'स्थानीय ऑफ़लाइन कतार' : 'Frontline Device Offline Queue')}
-              </strong>
-              <p>
-                {queueCount > 0
-                  ? (lang === 'hi'
-                      ? `${queueCount} मरीज़ चेक-इन स्थानीय डिवाइस में कतारबद्ध हैं। PHC सर्वर पर अपलोड करने के लिए सिंक दबाएं।`
-                      : `${queueCount} check-in(s) queued locally on this device. Click sync to upload to PHC server.`)
-                  : (lang === 'hi'
-                      ? 'कोई इंटरनेट आवश्यक नहीं है। रिकॉर्ड किए गए चेक-इन स्थानीय रूप से सहेजे जाएंगे।'
-                      : 'No active connection needed. Recorded check-ins will be safely cached locally.')}
-              </p>
-            </div>
-          </div>
-          <div className="offline-card-actions">
-            {queueCount > 0 && (
-              <button
-                type="button"
-                className="btn btn-primary btn-sync-now"
-                onClick={async () => {
-                  const res = await syncQueue();
-                  if (res?.syncedCount > 0) {
-                    fetchCallList(filter);
-                  }
-                }}
-                disabled={syncing}
-              >
-                {syncing
-                  ? (lang === 'hi' ? 'सिंक हो रहा है...' : 'Syncing...')
-                  : (lang === 'hi' ? `🔄 अभी सिंक करें (${queueCount})` : `🔄 Sync Now (${queueCount})`)}
-              </button>
-            )}
-            <button
-              type="button"
-              className="btn btn-outline btn-toggle-net"
-              onClick={toggleOffline}
-            >
-              {isOffline
-                ? (lang === 'hi' ? 'ऑनलाइन जाएं' : 'Switch Online')
-                : (lang === 'hi' ? 'ऑफ़लाइन जाएं' : 'Switch Offline')}
-            </button>
-          </div>
-        </div>
-      )}
 
       {syncStatus && (
         <div className={`alert ${syncStatus.type === 'success' ? 'alert-success' : 'alert-error'} sync-status-alert`}>
@@ -252,66 +241,78 @@ export default function WorkerDashboard() {
         </div>
       )}
 
-      {/* SIMPLE ASHA MODE: 3 Big Touch-Friendly Action Cards */}
+      {/* SIMPLE ASHA MODE: Modern Clinical KPI Action Cards */}
       {simpleMode ? (
-        <div className="asha-simple-priorities-grid">
+        <div className="triage-kpi-grid">
           {/* Card 1: Urgent Danger */}
           <button
             type="button"
-            className={`asha-priority-card card-urgent-bucket ${filter === 'concerning' ? 'active-filter' : ''}`}
+            className={`triage-kpi-card kpi-danger ${filter === 'concerning' ? 'is-active' : ''}`}
             onClick={() => setFilter(filter === 'concerning' ? 'all' : 'concerning')}
           >
-            <div className="priority-card-top">
-              <span className="priority-badge-icon">🚨</span>
-              <span className="priority-big-number">{metrics.concerning}</span>
+            <div className="kpi-top">
+              <span className="kpi-icon-wrap icon-danger">🚨</span>
+              <span className="kpi-value">{metrics.concerning}</span>
             </div>
-            <strong className="priority-title">{t('urgent_bucket_title')}</strong>
-            <p className="priority-subtitle">{t('urgent_bucket_sub')}</p>
-            <span className="priority-tap-prompt">
-              {filter === 'concerning'
-                ? (lang === 'hi' ? '✓ फ़िल्टर सक्रिय (सभी देखने हेतु दबाएं)' : '✓ Filter Active')
-                : (lang === 'hi' ? '👉 देखने के लिए दबाएं' : '👉 Tap to view')}
-            </span>
+            <div className="kpi-body">
+              <strong className="kpi-label">{t('urgent_bucket_title')}</strong>
+              <p className="kpi-subtext">{t('urgent_bucket_sub')}</p>
+            </div>
+            <div className="kpi-footer">
+              <span className="kpi-status-tag">
+                {filter === 'concerning'
+                  ? (lang === 'hi' ? '✓ फ़िल्टर सक्रिय' : '✓ Filter Active')
+                  : (lang === 'hi' ? '👉 मरीज़ देखें' : '👉 View Patients')}
+              </span>
+            </div>
           </button>
 
-          {/* Card 2: Overdue */}
+          {/* Card 2: Overdue Missed Visits */}
           <button
             type="button"
-            className={`asha-priority-card card-overdue-bucket ${filter === 'overdue' ? 'active-filter' : ''}`}
+            className={`triage-kpi-card kpi-warning ${filter === 'overdue' ? 'is-active' : ''}`}
             onClick={() => setFilter(filter === 'overdue' ? 'all' : 'overdue')}
           >
-            <div className="priority-card-top">
-              <span className="priority-badge-icon">⏳</span>
-              <span className="priority-big-number">{metrics.overdue}</span>
+            <div className="kpi-top">
+              <span className="kpi-icon-wrap icon-warning">⏳</span>
+              <span className="kpi-value">{metrics.overdue}</span>
             </div>
-            <strong className="priority-title">{t('overdue_bucket_title')}</strong>
-            <p className="priority-subtitle">{t('overdue_bucket_sub')}</p>
-            <span className="priority-tap-prompt">
-              {filter === 'overdue'
-                ? (lang === 'hi' ? '✓ फ़िल्टर सक्रिय (सभी देखने हेतु दबाएं)' : '✓ Filter Active')
-                : (lang === 'hi' ? '👉 देखने के लिए दबाएं' : '👉 Tap to view')}
-            </span>
+            <div className="kpi-body">
+              <strong className="kpi-label">{t('overdue_bucket_title')}</strong>
+              <p className="kpi-subtext">{t('overdue_bucket_sub')}</p>
+            </div>
+            <div className="kpi-footer">
+              <span className="kpi-status-tag">
+                {filter === 'overdue'
+                  ? (lang === 'hi' ? '✓ फ़िल्टर सक्रिय' : '✓ Filter Active')
+                  : (lang === 'hi' ? '👉 मरीज़ देखें' : '👉 View Patients')}
+              </span>
+            </div>
           </button>
 
           {/* Card 3: Routine Check-Ins */}
           <button
             type="button"
-            className={`asha-priority-card card-routine-bucket ${filter === 'all' ? 'active-filter' : ''}`}
+            className={`triage-kpi-card kpi-normal ${filter === 'all' ? 'is-active' : ''}`}
             onClick={() => setFilter('all')}
           >
-            <div className="priority-card-top">
-              <span className="priority-badge-icon">🟢</span>
-              <span className="priority-big-number">
+            <div className="kpi-top">
+              <span className="kpi-icon-wrap icon-normal">🟢</span>
+              <span className="kpi-value">
                 {metrics.dueSoon || (metrics.total - metrics.concerning - metrics.overdue)}
               </span>
             </div>
-            <strong className="priority-title">{t('routine_bucket_title')}</strong>
-            <p className="priority-subtitle">{t('routine_bucket_sub')}</p>
-            <span className="priority-tap-prompt">
-              {filter === 'all'
-                ? (lang === 'hi' ? '✓ सभी मरीज़ दिख रहे हैं' : '✓ Showing All')
-                : (lang === 'hi' ? '👉 सभी मरीज़ देखें' : '👉 Tap to view all')}
-            </span>
+            <div className="kpi-body">
+              <strong className="kpi-label">{t('routine_bucket_title')}</strong>
+              <p className="kpi-subtext">{t('routine_bucket_sub')}</p>
+            </div>
+            <div className="kpi-footer">
+              <span className="kpi-status-tag">
+                {filter === 'all'
+                  ? (lang === 'hi' ? '✓ सभी दिख रहे हैं' : '✓ Showing All')
+                  : (lang === 'hi' ? '👉 सभी देखें' : '👉 View All')}
+              </span>
+            </div>
           </button>
         </div>
       ) : (
@@ -512,7 +513,7 @@ export default function WorkerDashboard() {
                     💬 {lang === 'hi' ? 'व्हाट्सएप' : 'WhatsApp'}
                   </button>
 
-                  {/* If patient has clinical flag, prominent doctor escalate button */}
+                  {/* If patient has clinical flag, prominent government doctor escalate button */}
                   {patient.flags?.some((f) => f.type === 'clinical' && f.status === 'active') && (
                     <button
                       type="button"
@@ -521,8 +522,9 @@ export default function WorkerDashboard() {
                         const clinFlag = patient.flags.find((f) => f.type === 'clinical' && f.status === 'active');
                         if (clinFlag) setEscalatingFlag(clinFlag);
                       }}
+                      title={lang === 'hi' ? 'प्राथमिक स्वास्थ्य केंद्र (PHC) सरकारी डॉक्टर को रेफर करें' : 'Refer patient to Govt PHC Doctor'}
                     >
-                      🩺 {lang === 'hi' ? 'डॉक्टर को भेजें' : 'Send to Doctor'}
+                      🏛️ {lang === 'hi' ? 'सरकारी डॉक्टर को रेफर करें' : 'Refer to Govt Doctor'}
                     </button>
                   )}
 
