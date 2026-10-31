@@ -11,6 +11,7 @@ export default function PatientList() {
 
   useEffect(() => {
     setLoading(true);
+    setError('');
     api.patients.getAll()
       .then((res) => setPatients(res.patients || []))
       .catch((err) => setError(err.message || 'Failed to load patient registry'))

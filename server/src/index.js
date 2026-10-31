@@ -36,6 +36,36 @@ app.get('/api/health', (_req, res) => {
   });
 });
 
+// Ensure DB and background jobs are initialized; requests wait if needed
+let dbReadyPromise = null;
+
+function ensureDb() {
+  if (!dbReadyPromise) {
+    dbReadyPromise = initDb()
+      .then(() => {
+        startOverdueCronJob();
+        return true;
+      })
+      .catch((err) => {
+        console.error('Failed to initialize database:', err);
+        dbReadyPromise = null; // allow retry on next request
+        throw err;
+      });
+  }
+  return dbReadyPromise;
+}
+
+// Middleware: ensure database is initialized before serving API routes (except /health)
+app.use(async (req, res, next) => {
+  if (req.path === '/api/health') return next();
+  try {
+    await ensureDb();
+    next();
+  } catch (err) {
+    res.status(503).json({ error: 'Database service is initializing. Please retry in a moment.' });
+  }
+});
+
 // Mount application API modules
 app.use('/api/auth', authRoutes);
 app.use('/api/patients', patientRoutes);
@@ -46,24 +76,13 @@ app.use('/api/schedules', scheduleRoutes);
 app.use('/api/audit', auditRoutes);
 app.use('/api/messages', messageRoutes);
 
-// Server startup with DB initialization & background cron
-async function startServer() {
-  try {
-    await initDb();
-    startOverdueCronJob();
-
-    app.listen(PORT, () => {
-      console.log(`Swasthya Sense API listening on port ${PORT}`);
-    });
-  } catch (error) {
-    console.error('Failed to initialize server:', error);
-    process.exit(1);
-  }
-}
-
-// Start if executed directly
+// Start listening immediately so port 4000 is open without socket drops
 if (process.env.NODE_ENV !== 'test') {
-  startServer();
+  ensureDb().catch(() => {});
+
+  app.listen(PORT, () => {
+    console.log(`Swasthya Sense API listening on port ${PORT}`);
+  });
 }
 
 export default app;

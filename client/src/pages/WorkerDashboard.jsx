@@ -17,6 +17,7 @@ export default function WorkerDashboard() {
 
   const fetchCallList = async (currentFilter) => {
     setLoading(true);
+    setError('');
     try {
       const res = await api.patients.getCallList(currentFilter);
       setCallList(res.patients || []);

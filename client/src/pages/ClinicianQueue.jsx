@@ -15,6 +15,7 @@ export default function ClinicianQueue() {
 
   const fetchQueue = async (filter) => {
     setLoading(true);
+    setError('');
     try {
       const res = await api.escalations.getQueue(filter);
       setQueue(res.queue || []);

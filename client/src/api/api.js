@@ -1,9 +1,10 @@
 const BASE_URL = '/api';
 
 /**
- * Generic request helper with automatic Authorization header injection.
+ * Generic request helper with automatic Authorization header injection
+ * and transient retry support for server restarts / proxy reconnections.
  */
-async function request(endpoint, options = {}) {
+async function request(endpoint, options = {}, retries = 2) {
   const token = localStorage.getItem('swasthya_token');
   const headers = {
     'Content-Type': 'application/json',
@@ -11,19 +12,32 @@ async function request(endpoint, options = {}) {
     ...options.headers,
   };
 
-  const response = await fetch(`${BASE_URL}${endpoint}`, {
-    ...options,
-    headers,
-  });
+  try {
+    const response = await fetch(`${BASE_URL}${endpoint}`, {
+      ...options,
+      headers,
+    });
 
-  const data = await response.json().catch(() => ({}));
+    const data = await response.json().catch(() => ({}));
 
-  if (!response.ok) {
-    const errorMsg = data.error || `Request failed with status ${response.status}`;
-    throw new Error(errorMsg);
+    if (!response.ok) {
+      // If server is restarting (500, 502, 503) and we have retries left, pause and retry
+      if (retries > 0 && (response.status === 500 || response.status === 502 || response.status === 503)) {
+        await new Promise((r) => setTimeout(r, 350));
+        return request(endpoint, options, retries - 1);
+      }
+      const errorMsg = data.error || `Request failed with status ${response.status}`;
+      throw new Error(errorMsg);
+    }
+
+    return data;
+  } catch (err) {
+    if (retries > 0 && err.name !== 'AbortError') {
+      await new Promise((r) => setTimeout(r, 350));
+      return request(endpoint, options, retries - 1);
+    }
+    throw err;
   }
-
-  return data;
 }
 
 export const api = {
