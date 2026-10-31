@@ -95,6 +95,9 @@ export default function PatientDetail() {
               <span>📍 <strong>Village / Ward:</strong> {patient.village_or_ward}</span>
               <span>👤 <strong>Age Band:</strong> {patient.age_band}</span>
               <span>🆔 <strong>Synthetic Registry ID:</strong> <code>{patient.id}</code></span>
+              {patient.abha_id && (
+                <span>🏥 <strong>Ayushman Bharat ABHA:</strong> <code style={{ color: '#1d4ed8', fontWeight: 600 }}>{patient.abha_id}</code></span>
+              )}
             </div>
           </div>
 

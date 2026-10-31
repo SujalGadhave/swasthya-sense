@@ -56,17 +56,19 @@ router.get('/', authenticateToken, async (req, res) => {
  */
 router.patch('/:id/status', authenticateToken, async (req, res) => {
   const pool = getPool();
+  const { id } = req.params;
+  const { status } = req.body; // 'acknowledged', 'resolved'
+
+  if (!['acknowledged', 'resolved', 'active'].includes(status)) {
+    return res.status(400).json({ error: 'Invalid flag status' });
+  }
+
   const conn = await pool.getConnection();
+  let inTransaction = false;
 
   try {
-    const { id } = req.params;
-    const { status } = req.body; // 'acknowledged', 'resolved'
-
-    if (!['acknowledged', 'resolved', 'active'].includes(status)) {
-      return res.status(400).json({ error: 'Invalid flag status' });
-    }
-
     await conn.beginTransaction();
+    inTransaction = true;
 
     const [flagRows] = await conn.query('SELECT * FROM flags WHERE id = ? FOR UPDATE', [id]);
     if (flagRows.length === 0) {
@@ -96,10 +98,13 @@ router.patch('/:id/status', authenticateToken, async (req, res) => {
     });
 
     await conn.commit();
+    inTransaction = false;
 
     res.json({ success: true, flagId: id, status });
   } catch (error) {
-    await conn.rollback();
+    if (inTransaction) {
+      await conn.rollback();
+    }
     console.error('[Flag Status Update Error]', error);
     res.status(500).json({ error: 'Failed to update flag status' });
   } finally {

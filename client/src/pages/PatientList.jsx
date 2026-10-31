@@ -28,11 +28,13 @@ export default function PatientList() {
     const nameEn = getPatientDisplayName(p.pseudonym, 'en').toLowerCase();
     const pseudo = (p.pseudonym || '').toLowerCase();
     const village = (p.village_or_ward || '').toLowerCase();
+    const abha = (p.abha_id || '').toLowerCase();
     const matchesSearch =
       nameHi.includes(term) ||
       nameEn.includes(term) ||
       pseudo.includes(term) ||
-      village.includes(term);
+      village.includes(term) ||
+      abha.includes(term);
     return matchesCohort && matchesSearch;
   });
 
@@ -125,6 +127,11 @@ export default function PatientList() {
                     <div className="patient-name-container">
                       <strong>{getPatientDisplayName(p.pseudonym, lang)}</strong>
                       <span className="patient-id-badge">{p.pseudonym}</span>
+                      {p.abha_id && (
+                        <span className="meta-tag tag-abha" style={{ marginLeft: '0.35rem', fontSize: '0.72rem' }}>
+                          🆔 {p.abha_id}
+                        </span>
+                      )}
                     </div>
                   </td>
                   <td>

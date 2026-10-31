@@ -16,66 +16,65 @@ const router = express.Router();
  */
 router.post('/', authenticateToken, async (req, res) => {
   const pool = getPool();
+  const {
+    patient_id,
+    client_uuid = null,
+    channel = 'in_person',
+    symptoms = [],
+    measurements = {},
+    notes = '',
+    existing_check_in_id = null
+  } = req.body;
+
+  if (!patient_id) {
+    return res.status(400).json({ error: 'Patient ID is required' });
+  }
+
+  // Input sanity validation
+  if (measurements && typeof measurements === 'object') {
+    if (measurements.systolic !== undefined && measurements.systolic !== null && measurements.systolic !== '') {
+      const sys = Number(measurements.systolic);
+      if (isNaN(sys) || sys < 30 || sys > 350) {
+        return res.status(400).json({ error: 'Invalid systolic blood pressure value' });
+      }
+    }
+    if (measurements.diastolic !== undefined && measurements.diastolic !== null && measurements.diastolic !== '') {
+      const dia = Number(measurements.diastolic);
+      if (isNaN(dia) || dia < 20 || dia > 250) {
+        return res.status(400).json({ error: 'Invalid diastolic blood pressure value' });
+      }
+    }
+  }
+
+  // Idempotency check: if client_uuid is provided, check if already processed (uses pool directly)
+  if (client_uuid) {
+    const [existingRows] = await pool.query(
+      'SELECT * FROM check_ins WHERE client_uuid = ?',
+      [client_uuid]
+    );
+    if (existingRows.length > 0) {
+      const existingCheckIn = existingRows[0];
+      const [existingFlags] = await pool.query(
+        'SELECT * FROM flags WHERE check_in_id = ?',
+        [existingCheckIn.id]
+      );
+      return res.status(200).json({
+        success: true,
+        already_processed: true,
+        checkInId: existingCheckIn.id,
+        flags: existingFlags,
+        nextDueDate: existingCheckIn.due_date,
+        message: 'Check-in was previously recorded (idempotent duplicate rejected)'
+      });
+    }
+  }
+
   const conn = await pool.getConnection();
+  let inTransaction = false;
 
   try {
-    const {
-      patient_id,
-      client_uuid = null,
-      channel = 'in_person',
-      symptoms = [],
-      measurements = {},
-      notes = '',
-      existing_check_in_id = null
-    } = req.body;
-
-    if (!patient_id) {
-      return res.status(400).json({ error: 'Patient ID is required' });
-    }
-
-    // Input sanity validation
-    if (measurements && typeof measurements === 'object') {
-      if (measurements.systolic !== undefined && measurements.systolic !== null && measurements.systolic !== '') {
-        const sys = Number(measurements.systolic);
-        if (isNaN(sys) || sys < 30 || sys > 350) {
-          conn.release();
-          return res.status(400).json({ error: 'Invalid systolic blood pressure value' });
-        }
-      }
-      if (measurements.diastolic !== undefined && measurements.diastolic !== null && measurements.diastolic !== '') {
-        const dia = Number(measurements.diastolic);
-        if (isNaN(dia) || dia < 20 || dia > 250) {
-          conn.release();
-          return res.status(400).json({ error: 'Invalid diastolic blood pressure value' });
-        }
-      }
-    }
-
-    // Idempotency check: if client_uuid is provided, check if already processed
-    if (client_uuid) {
-      const [existingRows] = await pool.query(
-        'SELECT * FROM check_ins WHERE client_uuid = ?',
-        [client_uuid]
-      );
-      if (existingRows.length > 0) {
-        const existingCheckIn = existingRows[0];
-        const [existingFlags] = await pool.query(
-          'SELECT * FROM flags WHERE check_in_id = ?',
-          [existingCheckIn.id]
-        );
-        conn.release();
-        return res.status(200).json({
-          success: true,
-          already_processed: true,
-          checkInId: existingCheckIn.id,
-          flags: existingFlags,
-          nextDueDate: existingCheckIn.due_date,
-          message: 'Check-in was previously recorded (idempotent duplicate rejected)'
-        });
-      }
-    }
-
     await conn.beginTransaction();
+    inTransaction = true;
 
     // 1. Fetch patient metadata
     const [patientRows] = await conn.query('SELECT * FROM patients WHERE id = ? FOR UPDATE', [patient_id]);
@@ -215,6 +214,7 @@ router.post('/', authenticateToken, async (req, res) => {
     });
 
     await conn.commit();
+    inTransaction = false;
 
     res.status(201).json({
       success: true,
@@ -223,7 +223,9 @@ router.post('/', authenticateToken, async (req, res) => {
       nextDueDate: nextDueDateStr
     });
   } catch (error) {
-    await conn.rollback();
+    if (inTransaction) {
+      await conn.rollback();
+    }
     console.error('[CheckIn Submit Error]', error);
     res.status(500).json({ error: 'Failed to record check-in and evaluate rules' });
   } finally {

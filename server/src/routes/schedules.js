@@ -28,19 +28,21 @@ router.get('/', authenticateToken, async (_req, res) => {
  */
 router.put('/:cohort', authenticateToken, requireRole(['supervisor']), async (req, res) => {
   const pool = getPool();
+  const { cohort } = req.params;
+  const { interval_days, grace_period_days, reminder_lead_time_days } = req.body;
+
+  if (!interval_days || !grace_period_days || !reminder_lead_time_days) {
+    return res.status(400).json({
+      error: 'interval_days, grace_period_days, and reminder_lead_time_days are required'
+    });
+  }
+
   const conn = await pool.getConnection();
+  let inTransaction = false;
 
   try {
-    const { cohort } = req.params;
-    const { interval_days, grace_period_days, reminder_lead_time_days } = req.body;
-
-    if (!interval_days || !grace_period_days || !reminder_lead_time_days) {
-      return res.status(400).json({
-        error: 'interval_days, grace_period_days, and reminder_lead_time_days are required'
-      });
-    }
-
     await conn.beginTransaction();
+    inTransaction = true;
 
     const [existingRows] = await conn.query('SELECT * FROM schedules WHERE cohort = ? FOR UPDATE', [cohort]);
     if (existingRows.length === 0) {
@@ -81,6 +83,7 @@ router.put('/:cohort', authenticateToken, requireRole(['supervisor']), async (re
     });
 
     await conn.commit();
+    inTransaction = false;
 
     res.json({
       success: true,
@@ -91,7 +94,9 @@ router.put('/:cohort', authenticateToken, requireRole(['supervisor']), async (re
       reminder_lead_time_days: Number(reminder_lead_time_days)
     });
   } catch (error) {
-    await conn.rollback();
+    if (inTransaction) {
+      await conn.rollback();
+    }
     console.error('[Schedule Update Error]', error);
     res.status(500).json({ error: 'Failed to update schedule configuration' });
   } finally {

@@ -1,10 +1,26 @@
 import React, { useState, useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
 import { api } from '../api/api.js';
 import { useLanguage } from '../context/LanguageContext.jsx';
 
 export default function SupervisorView() {
   const { lang, t } = useLanguage();
-  const [activeTab, setActiveTab] = useState('overview'); // overview | schedules | audit | messages
+  const location = useLocation();
+
+  const getInitialTab = () => {
+    if (location.pathname === '/audit') return 'audit';
+    if (location.pathname === '/messages') return 'messages';
+    return 'overview';
+  };
+
+  const [activeTab, setActiveTab] = useState(getInitialTab);
+
+  useEffect(() => {
+    if (location.pathname === '/audit') setActiveTab('audit');
+    else if (location.pathname === '/messages') setActiveTab('messages');
+    else if (location.pathname === '/supervisor') setActiveTab('overview');
+  }, [location.pathname]);
+
   const [schedules, setSchedules] = useState([]);
   const [auditRecords, setAuditRecords] = useState([]);
   const [auditTotal, setAuditTotal] = useState(0);

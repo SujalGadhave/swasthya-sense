@@ -257,4 +257,18 @@ describe('Swasthya Sense — Domain REST APIs & Workflows', () => {
     expect(secondRes.body.already_processed).toBe(true);
     expect(secondRes.body.checkInId).toBe(firstRes.body.checkInId);
   });
+
+  it('12. POST /api/checkins rejects physiologically impossible vitals with 400 Bad Request', async () => {
+    const res = await request(app)
+      .post('/api/checkins')
+      .set('Authorization', `Bearer ${workerToken}`)
+      .send({
+        patient_id: 'pat-htn-02',
+        channel: 'in_person',
+        measurements: { systolic: 450, diastolic: 85 } // 450 exceeds physiological boundary 350
+      });
+
+    expect(res.status).toBe(400);
+    expect(res.body.error).toContain('Invalid systolic blood pressure');
+  });
 });

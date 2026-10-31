@@ -116,6 +116,7 @@ export default function CheckInForm({ patient, existingCheckInId, onClose, onSuc
   const [weightKg, setWeightKg] = useState('');
   const [temperatureF, setTemperatureF] = useState('');
   const [heartRate, setHeartRate] = useState('');
+  const [spo2, setSpo2] = useState('');
   const [selectedSymptoms, setSelectedSymptoms] = useState([]);
   const [notes, setNotes] = useState('');
   const [showExtraVitals, setShowExtraVitals] = useState(false);
@@ -215,6 +216,7 @@ export default function CheckInForm({ patient, existingCheckInId, onClose, onSuc
       if (weightKg) measurements.weightKg = Number(weightKg);
       if (temperatureF) measurements.temperatureF = Number(temperatureF);
       if (heartRate) measurements.heartRate = Number(heartRate);
+      if (spo2) measurements.spo2 = Number(spo2);
 
       const clientUuid = `chk-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
       const payload = {
@@ -489,6 +491,16 @@ export default function CheckInForm({ patient, existingCheckInId, onClose, onSuc
                       value={fastingGlucose}
                       onChange={(e) => setFastingGlucose(e.target.value)}
                       className="asha-input"
+                    />
+                  </div>
+                  <div className="vital-col">
+                    <label>🫁 {lang === 'hi' ? 'ऑक्सीजन SpO2 (%)' : 'Oxygen SpO2 (%)'}</label>
+                    <input
+                      type="number"
+                      placeholder="e.g. 98"
+                      value={spo2}
+                      onChange={(e) => setSpo2(e.target.value)}
+                      className={`asha-input ${spo2 && Number(spo2) < 90 ? 'input-alert' : ''}`}
                     />
                   </div>
                 </div>

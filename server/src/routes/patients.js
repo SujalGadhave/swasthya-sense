@@ -247,17 +247,19 @@ router.get('/:id', authenticateToken, async (req, res) => {
  */
 router.patch('/:id/consent', authenticateToken, async (req, res) => {
   const pool = getPool();
+  const { id } = req.params;
+  const { consent_status } = req.body;
+
+  if (!['consented', 'declined'].includes(consent_status)) {
+    return res.status(400).json({ error: "Invalid consent status. Allowed: 'consented', 'declined'" });
+  }
+
   const conn = await pool.getConnection();
+  let inTransaction = false;
 
   try {
-    const { id } = req.params;
-    const { consent_status } = req.body;
-
-    if (!['consented', 'declined'].includes(consent_status)) {
-      return res.status(400).json({ error: "Invalid consent status. Allowed: 'consented', 'declined'" });
-    }
-
     await conn.beginTransaction();
+    inTransaction = true;
 
     const [patientRows] = await conn.query('SELECT * FROM patients WHERE id = ? FOR UPDATE', [id]);
     if (patientRows.length === 0) {
@@ -283,6 +285,7 @@ router.patch('/:id/consent', authenticateToken, async (req, res) => {
     });
 
     await conn.commit();
+    inTransaction = false;
 
     res.json({
       success: true,
@@ -291,7 +294,9 @@ router.patch('/:id/consent', authenticateToken, async (req, res) => {
       newStatus: consent_status
     });
   } catch (error) {
-    await conn.rollback();
+    if (inTransaction) {
+      await conn.rollback();
+    }
     console.error('[Consent Update Error]', error);
     res.status(500).json({ error: 'Failed to update patient consent' });
   } finally {

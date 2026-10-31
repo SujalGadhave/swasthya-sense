@@ -14,21 +14,23 @@ const router = express.Router();
  */
 router.post('/', authenticateToken, requireRole(['worker', 'supervisor']), async (req, res) => {
   const pool = getPool();
+  const {
+    flag_id,
+    to_clinician_id,
+    worker_note = '',
+    referral_facility = 'Govt Primary Health Centre (PHC Sitapur)'
+  } = req.body;
+
+  if (!flag_id) {
+    return res.status(400).json({ error: 'Flag ID is required for escalation' });
+  }
+
   const conn = await pool.getConnection();
+  let inTransaction = false;
 
   try {
-    const {
-      flag_id,
-      to_clinician_id,
-      worker_note = '',
-      referral_facility = 'Govt Primary Health Centre (PHC Sitapur)'
-    } = req.body;
-
-    if (!flag_id) {
-      return res.status(400).json({ error: 'Flag ID is required for escalation' });
-    }
-
     await conn.beginTransaction();
+    inTransaction = true;
 
     const [flagRows] = await conn.query('SELECT * FROM flags WHERE id = ? FOR UPDATE', [flag_id]);
     if (flagRows.length === 0) {
@@ -77,6 +79,7 @@ router.post('/', authenticateToken, requireRole(['worker', 'supervisor']), async
     });
 
     await conn.commit();
+    inTransaction = false;
 
     res.status(201).json({
       success: true,
@@ -86,7 +89,9 @@ router.post('/', authenticateToken, requireRole(['worker', 'supervisor']), async
       referralFacility: referral_facility
     });
   } catch (error) {
-    await conn.rollback();
+    if (inTransaction) {
+      await conn.rollback();
+    }
     console.error('[Escalation Submit Error]', error);
     res.status(500).json({ error: 'Failed to escalate clinical alert' });
   } finally {
@@ -168,21 +173,23 @@ router.get('/queue', authenticateToken, async (req, res) => {
  */
 router.patch('/:id/review', authenticateToken, requireRole(['clinician', 'supervisor']), async (req, res) => {
   const pool = getPool();
+  const { id } = req.params;
+  const { clinician_note, outcome = 'Advised In-Clinic Follow-up', status = 'reviewed' } = req.body;
+
+  if (!clinician_note) {
+    return res.status(400).json({ error: 'Clinician note is required when reviewing an escalation' });
+  }
+
+  if (!['reviewed', 'action_taken', 'closed'].includes(status)) {
+    return res.status(400).json({ error: "Invalid status. Allowed: 'reviewed', 'action_taken', 'closed'" });
+  }
+
   const conn = await pool.getConnection();
+  let inTransaction = false;
 
   try {
-    const { id } = req.params;
-    const { clinician_note, outcome = 'Advised In-Clinic Follow-up', status = 'reviewed' } = req.body;
-
-    if (!clinician_note) {
-      return res.status(400).json({ error: 'Clinician note is required when reviewing an escalation' });
-    }
-
-    if (!['reviewed', 'action_taken', 'closed'].includes(status)) {
-      return res.status(400).json({ error: "Invalid status. Allowed: 'reviewed', 'action_taken', 'closed'" });
-    }
-
     await conn.beginTransaction();
+    inTransaction = true;
 
     const [escRows] = await conn.query('SELECT * FROM escalations WHERE id = ? FOR UPDATE', [id]);
     if (escRows.length === 0) {
@@ -219,6 +226,7 @@ router.patch('/:id/review', authenticateToken, requireRole(['clinician', 'superv
     });
 
     await conn.commit();
+    inTransaction = false;
 
     res.json({
       success: true,
@@ -228,7 +236,9 @@ router.patch('/:id/review', authenticateToken, requireRole(['clinician', 'superv
       clinicianNote: clinician_note
     });
   } catch (error) {
-    await conn.rollback();
+    if (inTransaction) {
+      await conn.rollback();
+    }
     console.error('[Escalation Review Error]', error);
     res.status(500).json({ error: 'Failed to record clinician review' });
   } finally {
