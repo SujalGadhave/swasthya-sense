@@ -3,10 +3,11 @@ import { Link } from 'react-router-dom';
 import { api } from '../api/api.js';
 import { useLanguage } from '../context/LanguageContext.jsx';
 import { useOffline } from '../context/OfflineContext.jsx';
-import FlagCard from '../components/FlagCard.jsx';
+import FlagCard, { getFlagExplanation } from '../components/FlagCard.jsx';
 import CheckInForm from './CheckInForm.jsx';
 import SimulatedMessageModal from '../components/SimulatedMessageModal.jsx';
 import OfflineSimulatorModal from '../components/OfflineSimulatorModal.jsx';
+import { getPatientDisplayName, getLocalizedVillage, getLocalizedAgeBand } from '../utils/patientNames.js';
 
 export default function WorkerDashboard() {
   const { lang, t } = useLanguage();
@@ -361,17 +362,22 @@ export default function WorkerDashboard() {
 
       {/* Prioritized Patient Call List */}
       {loading ? (
-        <div className="loading-state">Loading prioritized morning call list...</div>
+        <div className="loading-state">
+          {lang === 'hi' ? 'प्राथमिकता सुबह की कॉल सूची लोड हो रही है...' : 'Loading prioritized morning call list...'}
+        </div>
       ) : callList.length === 0 ? (
         <div className="empty-state">
-          <h3>No patients matching current filter</h3>
-          <p>All follow-ups for this category are up to date.</p>
+          <h3>{lang === 'hi' ? 'इस श्रेणी में कोई मरीज़ नहीं है' : 'No patients matching current filter'}</h3>
+          <p>{lang === 'hi' ? 'इस श्रेणी के सभी मरीज़ों की जांच पूरी है।' : 'All follow-ups for this category are up to date.'}</p>
         </div>
       ) : (
         <div className="call-list-grid">
           {callList.map((patient) => {
             const hasClinical = patient.priorityRank === 1;
             const hasOverdue = patient.priorityRank === 2 || patient.priorityRank === 3;
+            const displayName = getPatientDisplayName(patient.pseudonym, lang);
+            const localizedVillage = getLocalizedVillage(patient.village_or_ward, lang);
+            const localizedAge = getLocalizedAgeBand(patient.age_band, lang);
 
             return (
               <div
@@ -386,7 +392,10 @@ export default function WorkerDashboard() {
                           {patient.cohort === 'antenatal' ? '🤰' : patient.cohort === 'hypertension' ? '🫀' : '🩸'}
                         </span>
                         <div>
-                          <strong className="patient-simple-name">{patient.pseudonym}</strong>
+                          <div className="patient-name-container">
+                            <strong className="patient-simple-name">{displayName}</strong>
+                            <span className="patient-id-badge">{patient.pseudonym}</span>
+                          </div>
                           <span className="patient-cohort-simple">
                             {patient.cohort === 'antenatal'
                               ? t('cohort_antenatal_label')
@@ -403,8 +412,8 @@ export default function WorkerDashboard() {
                     </div>
 
                     <div className="patient-meta-tags">
-                      <span className="meta-tag tag-location">📍 {patient.village_or_ward}</span>
-                      <span className="meta-tag tag-age">👤 {patient.age_band}</span>
+                      <span className="meta-tag tag-location">📍 {localizedVillage}</span>
+                      <span className="meta-tag tag-age">👤 {localizedAge}</span>
                       <span className={`consent-badge consent-${patient.consent_status}`}>
                         {patient.consent_status === 'consented' ? t('consent_yes') : t('consent_no')}
                       </span>
@@ -427,7 +436,7 @@ export default function WorkerDashboard() {
                         )}
                       </div>
                     ) : (
-                      <span className="text-muted">No scheduled check-in</span>
+                      <span className="text-muted">{t('no_scheduled_checkin')}</span>
                     )}
                   </div>
                 </div>
@@ -453,7 +462,12 @@ export default function WorkerDashboard() {
                 {/* Escalation status banner if active */}
                 {patient.escalation_status && (
                   <div className="escalation-status-banner">
-                    ↗ {t('escalation_status_label')} <strong>{patient.escalation_status.toUpperCase()}</strong>
+                    ↗ {t('escalation_status_label')}{' '}
+                    <strong>
+                      {patient.escalation_status === 'pending'
+                        ? (lang === 'hi' ? 'लंबित' : 'PENDING')
+                        : patient.escalation_status.toUpperCase()}
+                    </strong>
                   </div>
                 )}
 
@@ -534,7 +548,7 @@ export default function WorkerDashboard() {
                   </h3>
                 </div>
                 <span className="modal-subtitle">
-                  {lang === 'hi' ? 'जोखिम लक्षण:' : 'Flag:'} {escalatingFlag.explanation || `Rule ${escalatingFlag.rule_id}`}
+                  {lang === 'hi' ? 'जोखिम लक्षण:' : 'Flag:'} {getFlagExplanation(escalatingFlag, lang)}
                 </span>
               </div>
               <button className="btn-close" onClick={() => setEscalatingFlag(null)}>✕</button>

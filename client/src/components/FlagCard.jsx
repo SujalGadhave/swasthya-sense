@@ -8,6 +8,33 @@ import { useLanguage } from '../context/LanguageContext.jsx';
  * between administrative reminders (grey) and clinical alerts (red),
  * with inline SVG sparkline visualization for trend rules (R5).
  */
+export function getFlagExplanation(flag, lang) {
+  if (!flag) return '';
+  if (lang !== 'hi') {
+    return flag.explanation || flag.description || 'Flagged for clinician review based on protocol threshold.';
+  }
+  switch (flag.rule_id) {
+    case 'R1':
+      return 'नियमित फॉलो-अप जांच की निर्धारित तारीख निकल चुकी है। घर जाकर जांच पूरी करें।';
+    case 'R2':
+      return 'गंभीर विलंब: 14 दिनों से अधिक समय से जांच छूटी हुई है। तत्काल संपर्क करें।';
+    case 'R3':
+      return 'लगातार 2 या अधिक जांचें छूटी हुई हैं। प्राथमिकता के आधार पर गृह भेंट करें।';
+    case 'R4':
+      return 'रक्तचाप (BP) सुरक्षित सीमा से अधिक दर्ज किया गया है। सरकारी डॉक्टर की सलाह आवश्यक है।';
+    case 'R5':
+      return 'पिछली 3 जांचों में रक्तचाप लगातार बढ़ रहा है। सरकारी डॉक्टर को रेफर करें।';
+    case 'R6':
+      return 'खतरे के गंभीर लक्षण दर्ज किए गए (तेज सिरदर्द, धुंधलापन या रक्तस्राव)। तुरंत सरकारी अस्पताल रेफर करें।';
+    case 'R7':
+      return 'रक्त शर्करा (शुगर) का स्तर सुरक्षित सीमा से अधिक है। सरकारी डॉक्टर से जांच कराएं।';
+    case 'R8':
+      return 'शारीरिक माप में विसंगति पाई गई। कृपया दोबारा जांच करें।';
+    default:
+      return flag.explanation || 'सरकारी डॉक्टर की समीक्षा के लिए चिन्हित किया गया।';
+  }
+}
+
 export default function FlagCard({ flag, onEscalate, onAcknowledge, isWorker = false }) {
   const { lang, t } = useLanguage();
   const isClinical = flag.type === 'clinical';
@@ -24,8 +51,8 @@ export default function FlagCard({ flag, onEscalate, onAcknowledge, isWorker = f
         <div className="flag-tags">
           <span className={`flag-badge ${isClinical ? 'badge-clinical' : 'badge-reminder'}`}>
             {isClinical
-              ? (lang === 'hi' ? '🚨 खतरे का संकेत (खुराक / डॉक्टर रेफरल)' : '🚨 Urgent Clinical Danger Alert')
-              : (lang === 'hi' ? '📅 छूटी हुई जांच (Overdue)' : '📅 Overdue Reminder')}
+              ? (lang === 'hi' ? '🚨 खतरे का संकेत (डॉक्टर रेफरल)' : '🚨 Urgent Clinical Danger Alert')
+              : (lang === 'hi' ? '📅 छूटी हुई जांच' : '📅 Overdue Reminder')}
           </span>
           {!isWorker && <span className="flag-rule-id">Rule {flag.rule_id}</span>}
           {!isWorker && (
@@ -35,9 +62,21 @@ export default function FlagCard({ flag, onEscalate, onAcknowledge, isWorker = f
           )}
           {flag.status && (
             <span className={`status-tag status-${flag.status}`}>
-              {flag.status === 'escalated'
-                ? (lang === 'hi' ? 'डॉक्टर को भेजा गया' : 'Escalated to Doctor')
-                : flag.status}
+              {lang === 'hi'
+                ? flag.status === 'active'
+                  ? 'सक्रिय (लंबित)'
+                  : flag.status === 'escalated'
+                  ? 'डॉक्टर को भेजा गया'
+                  : flag.status === 'acknowledged'
+                  ? 'स्वीकृत'
+                  : 'समाधान हुआ'
+                : flag.status === 'active'
+                ? 'Active'
+                : flag.status === 'escalated'
+                ? 'Escalated to Doctor'
+                : flag.status === 'acknowledged'
+                ? 'Acknowledged'
+                : 'Resolved'}
             </span>
           )}
         </div>
@@ -45,7 +84,7 @@ export default function FlagCard({ flag, onEscalate, onAcknowledge, isWorker = f
 
       <div className="flag-body">
         <p className="flag-explanation">
-          {flag.explanation || flag.description || 'Flagged for clinician review based on protocol threshold.'}
+          {getFlagExplanation(flag, lang)}
         </p>
 
         {/* Visual Trendline Sparkline for Rising Trend Rule R5 */}

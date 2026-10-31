@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { api } from '../api/api.js';
 import { useLanguage } from '../context/LanguageContext.jsx';
 import { useOffline } from '../context/OfflineContext.jsx';
+import { getPatientDisplayName, getLocalizedVillage } from '../utils/patientNames.js';
 
 const DANGER_SIGNS = {
   antenatal: [
@@ -255,7 +256,7 @@ export default function CheckInForm({ patient, existingCheckInId, onClose, onSuc
             <div>
               <h3>
                 {lang === 'hi' ? 'जांच दर्ज करें' : 'Record Check-In'} ·{' '}
-                <strong className="asha-patient-name">{patient.pseudonym}</strong>
+                <strong className="asha-patient-name">{getPatientDisplayName(patient.pseudonym, lang)}</strong>
               </h3>
               <span className="modal-subtitle">
                 {isANC
@@ -263,7 +264,7 @@ export default function CheckInForm({ patient, existingCheckInId, onClose, onSuc
                   : isHTN
                   ? (lang === 'hi' ? 'उच्च रक्तचाप (Hypertension)' : 'Hypertension Patient')
                   : (lang === 'hi' ? 'मधुमेह (Diabetes)' : 'Diabetes Patient')}{' '}
-                · 📍 {patient.village_or_ward}
+                · 📍 {getLocalizedVillage(patient.village_or_ward, lang)}
               </span>
             </div>
           </div>

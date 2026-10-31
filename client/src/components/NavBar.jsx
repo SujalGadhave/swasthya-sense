@@ -6,7 +6,7 @@ import { useOffline } from '../context/OfflineContext.jsx';
 
 export default function NavBar() {
   const { user, logout, login } = useAuth();
-  const { lang, toggleLang, t } = useLanguage();
+  const { lang, setLang, t } = useLanguage();
   const { isOffline, toggleOffline, queueCount, openSimulator } = useOffline();
   const navigate = useNavigate();
   const location = useLocation();
@@ -111,15 +111,25 @@ export default function NavBar() {
             )}
           </button>
 
-          {/* Language Toggle Button */}
-          <button
-            type="button"
-            className="lang-toggle-btn"
-            onClick={toggleLang}
-            title={lang === 'en' ? 'हिंदी में बदलें (Switch to Hindi)' : 'Switch to English'}
-          >
-            🌐 <strong className="lang-text">{lang === 'en' ? 'हिंदी' : 'English'}</strong>
-          </button>
+          {/* Language Selector: Clear Two-Pill Segmented Switcher (Zero Ambiguity) */}
+          <div className="language-selector-pills" role="group" aria-label="Language Selector">
+            <button
+              type="button"
+              className={`lang-pill-btn ${lang === 'en' ? 'active-lang' : ''}`}
+              onClick={() => setLang('en')}
+              title="Switch interface to English"
+            >
+              English
+            </button>
+            <button
+              type="button"
+              className={`lang-pill-btn ${lang === 'hi' ? 'active-lang' : ''}`}
+              onClick={() => setLang('hi')}
+              title="इंटरफ़ेस हिंदी में बदलें"
+            >
+              हिंदी
+            </button>
+          </div>
 
           {/* Quick Demo Persona Switcher */}
           <div className="persona-switcher">
@@ -150,7 +160,13 @@ export default function NavBar() {
           {user && (
             <div className="user-profile">
               <span className="user-badge" title={`Role: ${user.role}`}>
-                {user.full_name}
+                {lang === 'hi'
+                  ? user.username === 'worker1'
+                    ? 'सुनीता देवी (आशा)'
+                    : user.username === 'dr_sharma'
+                    ? 'डॉ. राजेश शर्मा (डॉक्टर)'
+                    : 'अनिता वर्मा (प्रभारी)'
+                  : user.full_name}
               </span>
               <button onClick={handleLogout} className="btn-logout" title={t('sign_out')}>
                 {t('sign_out')}

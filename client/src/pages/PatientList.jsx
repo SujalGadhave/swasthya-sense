@@ -1,8 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { api } from '../api/api.js';
+import { useLanguage } from '../context/LanguageContext.jsx';
+import { getPatientDisplayName, getLocalizedVillage, getLocalizedAgeBand } from '../utils/patientNames.js';
 
 export default function PatientList() {
+  const { lang, t } = useLanguage();
   const [patients, setPatients] = useState([]);
   const [cohortFilter, setCohortFilter] = useState('all');
   const [searchTerm, setSearchTerm] = useState('');
@@ -20,9 +23,16 @@ export default function PatientList() {
 
   const filteredPatients = patients.filter((p) => {
     const matchesCohort = cohortFilter === 'all' || p.cohort === cohortFilter;
+    const term = searchTerm.toLowerCase();
+    const nameHi = getPatientDisplayName(p.pseudonym, 'hi').toLowerCase();
+    const nameEn = getPatientDisplayName(p.pseudonym, 'en').toLowerCase();
+    const pseudo = (p.pseudonym || '').toLowerCase();
+    const village = (p.village_or_ward || '').toLowerCase();
     const matchesSearch =
-      p.pseudonym?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      p.village_or_ward?.toLowerCase().includes(searchTerm.toLowerCase());
+      nameHi.includes(term) ||
+      nameEn.includes(term) ||
+      pseudo.includes(term) ||
+      village.includes(term);
     return matchesCohort && matchesSearch;
   });
 
@@ -98,13 +108,22 @@ export default function PatientList() {
               {filteredPatients.map((p) => (
                 <tr key={p.id}>
                   <td>
-                    <strong>{p.pseudonym}</strong>
+                    <div className="patient-name-container">
+                      <strong>{getPatientDisplayName(p.pseudonym, lang)}</strong>
+                      <span className="patient-id-badge">{p.pseudonym}</span>
+                    </div>
                   </td>
                   <td>
-                    <span className="meta-tag tag-cohort">{p.cohort?.toUpperCase()}</span>
+                    <span className="meta-tag tag-cohort">
+                      {p.cohort === 'antenatal'
+                        ? (lang === 'hi' ? 'गर्भवती (ANC)' : 'ANTENATAL')
+                        : p.cohort === 'hypertension'
+                        ? (lang === 'hi' ? 'बीपी (HTN)' : 'HYPERTENSION')
+                        : (lang === 'hi' ? 'शुगर (DB)' : 'DIABETES')}
+                    </span>
                   </td>
-                  <td>📍 {p.village_or_ward}</td>
-                  <td>👤 {p.age_band}</td>
+                  <td>📍 {getLocalizedVillage(p.village_or_ward, lang)}</td>
+                  <td>👤 {getLocalizedAgeBand(p.age_band, lang)}</td>
                   <td>
                     <span className={`status-pill ${p.consent_status === 'consented' ? 'status-sent' : 'status-suppressed'}`}>
                       {p.consent_status === 'consented' ? '✓ Consented' : '✕ Declined'}

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { api } from '../api/api.js';
 import { useLanguage } from '../context/LanguageContext.jsx';
+import { getPatientDisplayName, getLocalizedVillage } from '../utils/patientNames.js';
 
 export default function SimulatedMessageModal({ patient, onClose }) {
   const { lang } = useLanguage();
@@ -44,7 +45,7 @@ export default function SimulatedMessageModal({ patient, onClose }) {
           <div>
             <h3>📱 Patient Simulated Messaging Preview</h3>
             <span className="modal-subtitle">
-              Patient: <strong>{patient.pseudonym}</strong> ({patient.cohort?.toUpperCase()} · {patient.village_or_ward})
+              Patient: <strong>{getPatientDisplayName(patient.pseudonym, msgLang)}</strong> ({patient.pseudonym} · {patient.cohort?.toUpperCase()} · {getLocalizedVillage(patient.village_or_ward, msgLang)})
             </span>
           </div>
           <button className="btn-close" onClick={onClose}>✕</button>

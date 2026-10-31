@@ -1,8 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { api } from '../api/api.js';
 import VitalTrendSparkline from '../components/VitalTrendSparkline.jsx';
+import { useLanguage } from '../context/LanguageContext.jsx';
+import { getPatientDisplayName, getLocalizedVillage } from '../utils/patientNames.js';
 
 export default function ClinicianQueue() {
+  const { lang } = useLanguage();
   const [queue, setQueue] = useState([]);
   const [statusFilter, setStatusFilter] = useState('all');
   const [loading, setLoading] = useState(true);
@@ -148,9 +151,11 @@ export default function ClinicianQueue() {
                 <div className="queue-card-header">
                   <div>
                     <div className="queue-title-row">
-                      <span className="patient-id-tag">{esc.pseudonym}</span>
+                      <span className="patient-id-tag">
+                        <strong>{getPatientDisplayName(esc.pseudonym, lang)}</strong> ({esc.pseudonym})
+                      </span>
                       <span className="meta-tag tag-cohort">{esc.cohort?.toUpperCase()}</span>
-                      <span className="meta-tag tag-location">📍 {esc.village_or_ward}</span>
+                      <span className="meta-tag tag-location">📍 {getLocalizedVillage(esc.village_or_ward, lang)}</span>
                       <span className="meta-tag tag-age">👤 {esc.age_band}</span>
                     </div>
                     <span className="escalation-byline">

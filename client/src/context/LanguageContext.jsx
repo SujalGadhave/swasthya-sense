@@ -53,12 +53,14 @@ export const translations = {
     day_s: 'day(s)',
     consent_yes: '✓ Consent: YES',
     consent_no: '✕ Consent: DECLINED',
-    flags_triggered_title: 'Transparent Flags Triggered:',
+    flags_triggered_title: 'Clinical & Safety Flags:',
     record_checkin_btn: '📝 Record Check-In',
     view_timeline_btn: '📊 View Timeline & Consent',
     escalate_btn: '🏥 Refer to Govt Hospital & Doctor',
     acknowledge_btn: '✓ Mark Acknowledged',
     escalation_status_label: 'Escalation Status:',
+    no_scheduled_checkin: 'No scheduled check-in',
+    years_label: 'yrs',
 
     // Check-in Modal
     checkin_modal_title: 'Record Follow-Up Check-In',
@@ -159,10 +161,10 @@ export const translations = {
     filter_escalated: '↗ डॉक्टर को भेजे गए केस',
 
     // Priorities
-    priority_clinical: 'आपातकालीन अलर्ट (Clinical)',
-    priority_r3: 'बार-बार छूटी जांच (R3)',
-    priority_r2: 'समय सीमा पार (Overdue R2)',
-    priority_r1: 'शीघ्र देय जांच (Due Soon R1)',
+    priority_clinical: 'आपातकालीन अलर्ट',
+    priority_r3: 'बार-बार छूटी जांच',
+    priority_r2: 'समय सीमा पार (विलंबित)',
+    priority_r1: 'शीघ्र देय जांच',
     priority_routine: 'नियमित फॉलो-अप',
 
     // Patient card labels
@@ -172,12 +174,14 @@ export const translations = {
     day_s: 'दिनों में',
     consent_yes: '✓ सहमति: हाँ',
     consent_no: '✕ सहमति: अस्वीकृत',
-    flags_triggered_title: 'सिस्टम द्वारा पाए गए जोखिम संकेत (Flags):',
+    flags_triggered_title: 'जोखिम लक्षण संकेत:',
     record_checkin_btn: '📝 जांच दर्ज करें',
     view_timeline_btn: '📊 इतिहास व सहमति देखें',
     escalate_btn: '🏥 सरकारी अस्पताल / डॉक्टर को रेफर करें',
     acknowledge_btn: '✓ स्वीकार किया',
     escalation_status_label: 'डॉक्टर रेफरल स्थिति:',
+    no_scheduled_checkin: 'कोई निर्धारित जांच नहीं',
+    years_label: 'वर्ष',
 
     // Check-in Modal
     checkin_modal_title: 'फॉलो-अप जांच दर्ज करें (Check-In)',
@@ -243,12 +247,16 @@ export const translations = {
 };
 
 export function LanguageProvider({ children }) {
-  const [lang, setLang] = useState(() => localStorage.getItem('swasthya_lang') || 'en');
+  const [lang, setLangState] = useState(() => localStorage.getItem('swasthya_lang') || 'hi');
+
+  const setLang = (newLang) => {
+    setLangState(newLang);
+    localStorage.setItem('swasthya_lang', newLang);
+  };
 
   const toggleLang = () => {
     const next = lang === 'en' ? 'hi' : 'en';
     setLang(next);
-    localStorage.setItem('swasthya_lang', next);
   };
 
   const t = (key, defaultText = '') => {
@@ -256,7 +264,7 @@ export function LanguageProvider({ children }) {
   };
 
   return (
-    <LanguageContext.Provider value={{ lang, toggleLang, t }}>
+    <LanguageContext.Provider value={{ lang, setLang, toggleLang, t }}>
       {children}
     </LanguageContext.Provider>
   );
