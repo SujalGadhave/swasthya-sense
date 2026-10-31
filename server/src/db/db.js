@@ -48,6 +48,19 @@ export async function initDb() {
     await pool.query(statement);
   }
 
+  // Step 4: Run column additions safely if tables already existed
+  try {
+    await pool.query(`ALTER TABLE check_ins ADD COLUMN client_uuid VARCHAR(64) UNIQUE;`);
+  } catch (err) {
+    // Column already exists or duplicate key - safe to ignore
+  }
+
+  try {
+    await pool.query(`ALTER TABLE patients ADD COLUMN abha_id VARCHAR(20) DEFAULT NULL;`);
+  } catch (err) {
+    // Column already exists - safe to ignore
+  }
+
   console.log(`[Database] MySQL connected and tables verified on ${database}`);
   return pool;
 }

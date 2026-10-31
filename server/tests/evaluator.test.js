@@ -142,4 +142,45 @@ describe('Swasthya Sense — Rule Evaluator', () => {
     expect(r8.explanation).toContain('fasting');
     expect(r8.triggering_values.value).toBe(165);
   });
+
+  it('R9: Flags rapid gestational weight gain in pregnancy (>2 kg anomaly)', () => {
+    const antenatalPatient = { cohort: 'antenatal' };
+    const pastCheckIns = [{ measurements: { weightKg: 54.0 } }];
+
+    const flags = evaluateRules({
+      checkIn: {
+        measurements: { weightKg: 56.5 } // +2.5 kg gain > 2.0 kg threshold
+      },
+      patient: antenatalPatient,
+      pastCheckIns,
+      rulesConfig
+    });
+
+    const r9 = flags.find(f => f.rule_id === 'R9');
+    expect(r9).toBeDefined();
+    expect(r9.type).toBe('clinical');
+    expect(r9.severity).toBe('urgent');
+    expect(r9.explanation).toContain('Gestational weight change');
+    expect(r9.triggering_values.deltaKg).toBe(2.5);
+  });
+
+  it('R10: Flags cardiorespiratory decompensation (SpO2 < 90% or extreme pulse)', () => {
+    const flags = evaluateRules({
+      checkIn: {
+        measurements: { spo2: 87, heartRate: 135 }
+      },
+      patient,
+      rulesConfig
+    });
+
+    const r10Flags = flags.filter(f => f.rule_id === 'R10');
+    expect(r10Flags.length).toBe(2); // One for SpO2, one for tachycardia
+    const spo2Flag = r10Flags.find(f => f.triggering_values.metric === 'spo2');
+    const hrFlag = r10Flags.find(f => f.triggering_values.metric === 'heartRate');
+
+    expect(spo2Flag).toBeDefined();
+    expect(spo2Flag.explanation).toContain('SpO2');
+    expect(hrFlag).toBeDefined();
+    expect(hrFlag.explanation).toContain('Heart Rate');
+  });
 });

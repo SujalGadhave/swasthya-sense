@@ -128,6 +128,7 @@ router.get('/queue', authenticateToken, async (req, res) => {
         p.age_band,
         p.village_or_ward,
         p.cohort,
+        p.abha_id,
         c.id AS check_in_id,
         c.symptoms,
         c.measurements,

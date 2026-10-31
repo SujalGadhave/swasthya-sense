@@ -211,4 +211,50 @@ describe('Swasthya Sense — Domain REST APIs & Workflows', () => {
     expect(statuses).toContain('simulated_sent');
     expect(statuses).toContain('failed_no_consent'); // Demonstrates privacy constraint
   });
+
+  it('10. GET /api/patients/:id/fhir produces valid ABDM FHIR R4 Document Bundle', async () => {
+    const res = await request(app)
+      .get('/api/patients/pat-htn-01/fhir')
+      .set('Authorization', `Bearer ${clinicianToken}`);
+
+    expect(res.status).toBe(200);
+    expect(res.body.resourceType).toBe('Bundle');
+    expect(res.body.type).toBe('collection');
+    expect(res.body.entry).toBeDefined();
+    expect(res.body.entry.length).toBeGreaterThan(0);
+
+    const patientRes = res.body.entry.find(e => e.resource.resourceType === 'Patient');
+    expect(patientRes).toBeDefined();
+    expect(patientRes.resource.identifier).toBeDefined();
+  });
+
+  it('11. POST /api/checkins rejects duplicate submission idempotently using client_uuid', async () => {
+    const testUuid = `idempotent-test-${Date.now()}`;
+    const payload = {
+      patient_id: 'pat-htn-02',
+      client_uuid: testUuid,
+      channel: 'in_person',
+      measurements: { systolic: 130, diastolic: 85 },
+      notes: 'Initial test entry'
+    };
+
+    // First attempt -> 201 Created
+    const firstRes = await request(app)
+      .post('/api/checkins')
+      .set('Authorization', `Bearer ${workerToken}`)
+      .send(payload);
+
+    expect(firstRes.status).toBe(201);
+    expect(firstRes.body.checkInId).toBeDefined();
+
+    // Duplicate replay -> 200 OK with already_processed: true (Idempotency shield!)
+    const secondRes = await request(app)
+      .post('/api/checkins')
+      .set('Authorization', `Bearer ${workerToken}`)
+      .send(payload);
+
+    expect(secondRes.status).toBe(200);
+    expect(secondRes.body.already_processed).toBe(true);
+    expect(secondRes.body.checkInId).toBe(firstRes.body.checkInId);
+  });
 });

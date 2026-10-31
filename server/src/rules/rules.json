@@ -100,6 +100,29 @@
         "randomMax": 200
       },
       "explanationTemplate": "Blood glucose {metric} of {value} mg/dL is outside target limit ({min} - {max} mg/dL). Flagged for clinician review."
+    },
+    {
+      "id": "R9",
+      "type": "clinical",
+      "severity": "urgent",
+      "description": "Rapid gestational weight gain or loss anomaly in pregnancy",
+      "thresholds": {
+        "maxFortnightGainKg": 2.0,
+        "maxLossKg": 1.0
+      },
+      "explanationTemplate": "Gestational weight change of {weightChange} kg across recent visits flagged (exceeds {threshold} kg threshold). Potential preeclampsia fluid retention or fetal growth concern; flagged for clinician review."
+    },
+    {
+      "id": "R10",
+      "type": "clinical",
+      "severity": "urgent",
+      "description": "Cardiorespiratory vital alert (hypoxia or extreme pulse)",
+      "thresholds": {
+        "spo2Min": 90,
+        "heartRateMin": 45,
+        "heartRateMax": 120
+      },
+      "explanationTemplate": "Critical physiological vital '{metric}' of {value} is dangerously abnormal. Immediate clinician review required."
     }
   ]
 }

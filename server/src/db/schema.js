@@ -17,6 +17,7 @@ export const SCHEMA_SQL = [
     assigned_worker_id VARCHAR(36),
     consent_status ENUM('consented', 'declined') DEFAULT 'consented',
     consent_updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    abha_id VARCHAR(20) DEFAULT NULL,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (assigned_worker_id) REFERENCES users(id) ON DELETE SET NULL
   ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;`,
@@ -33,6 +34,7 @@ export const SCHEMA_SQL = [
 
   `CREATE TABLE IF NOT EXISTS check_ins (
     id VARCHAR(36) PRIMARY KEY,
+    client_uuid VARCHAR(64) UNIQUE,
     patient_id VARCHAR(36) NOT NULL,
     worker_id VARCHAR(36) NOT NULL,
     due_date DATE NOT NULL,

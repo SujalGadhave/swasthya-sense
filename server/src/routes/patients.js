@@ -32,6 +32,7 @@ router.get('/call-list', authenticateToken, async (req, res) => {
         p.village_or_ward,
         p.cohort,
         p.consent_status,
+        p.abha_id,
         c.id AS check_in_id,
         c.due_date,
         c.channel,
@@ -65,6 +66,7 @@ router.get('/call-list', authenticateToken, async (req, res) => {
           village_or_ward: row.village_or_ward,
           cohort: row.cohort,
           consent_status: row.consent_status,
+          abha_id: row.abha_id,
           check_in_id: row.check_in_id,
           due_date: row.due_date ? (row.due_date instanceof Date ? row.due_date.toISOString().split('T')[0] : String(row.due_date)) : null,
           channel: row.channel,
@@ -127,13 +129,22 @@ router.get('/call-list', authenticateToken, async (req, res) => {
       };
     });
 
-    // Sort by priority rank ASC, then days_overdue DESC
-    callList.sort((a, b) => {
-      if (a.priorityRank !== b.priorityRank) {
+    // Sort by proximity (village ward route) OR by urgency priority rank
+    const sortBy = req.query.sort || 'urgency';
+    if (sortBy === 'proximity') {
+      callList.sort((a, b) => {
+        const wardDiff = (a.village_or_ward || '').localeCompare(b.village_or_ward || '');
+        if (wardDiff !== 0) return wardDiff;
         return a.priorityRank - b.priorityRank;
-      }
-      return b.days_overdue - a.days_overdue;
-    });
+      });
+    } else {
+      callList.sort((a, b) => {
+        if (a.priorityRank !== b.priorityRank) {
+          return a.priorityRank - b.priorityRank;
+        }
+        return b.days_overdue - a.days_overdue;
+      });
+    }
 
     // Apply optional filter
     let filteredList = callList;
@@ -164,7 +175,7 @@ router.get('/', authenticateToken, async (req, res) => {
   try {
     const pool = getPool();
     let query = `
-      SELECT id, pseudonym, age_band, village_or_ward, cohort, assigned_worker_id, consent_status, consent_updated_at, created_at
+      SELECT id, pseudonym, age_band, village_or_ward, cohort, assigned_worker_id, consent_status, abha_id, consent_updated_at, created_at
       FROM patients
     `;
     const params = [];
@@ -285,6 +296,240 @@ router.patch('/:id/consent', authenticateToken, async (req, res) => {
     res.status(500).json({ error: 'Failed to update patient consent' });
   } finally {
     conn.release();
+  }
+});
+
+/**
+ * GET /api/patients/:id/trends
+ * Returns chronological vitals history for trend visualization (e.g. sparklines).
+ */
+router.get('/:id/trends', authenticateToken, async (req, res) => {
+  try {
+    const pool = getPool();
+    const { id } = req.params;
+
+    const [patientRows] = await pool.query('SELECT * FROM patients WHERE id = ?', [id]);
+    if (patientRows.length === 0) {
+      return res.status(404).json({ error: 'Patient not found' });
+    }
+    const patient = patientRows[0];
+
+    const [checkinRows] = await pool.query(
+      `SELECT id, due_date, completed_at, measurements, symptoms 
+       FROM check_ins 
+       WHERE patient_id = ? AND completed_at IS NOT NULL 
+       ORDER BY completed_at ASC LIMIT 10`,
+      [id]
+    );
+
+    const trends = checkinRows.map((c) => {
+      const m = typeof c.measurements === 'string'
+        ? JSON.parse(c.measurements || '{}')
+        : (c.measurements || {});
+      const s = typeof c.symptoms === 'string'
+        ? JSON.parse(c.symptoms || '[]')
+        : (c.symptoms || []);
+
+      return {
+        check_in_id: c.id,
+        date: c.completed_at
+          ? (c.completed_at instanceof Date ? c.completed_at.toISOString().split('T')[0] : String(c.completed_at).split('T')[0])
+          : null,
+        systolic: m.systolic ? Number(m.systolic) : null,
+        diastolic: m.diastolic ? Number(m.diastolic) : null,
+        fastingGlucose: m.fastingGlucose ? Number(m.fastingGlucose) : null,
+        randomGlucose: m.randomGlucose ? Number(m.randomGlucose) : null,
+        heartRate: m.heartRate ? Number(m.heartRate) : null,
+        spo2: m.spo2 ? Number(m.spo2) : null,
+        weightKg: m.weightKg ? Number(m.weightKg) : null,
+        symptoms: s
+      };
+    });
+
+    res.json({
+      patient_id: patient.id,
+      pseudonym: patient.pseudonym,
+      cohort: patient.cohort,
+      abha_id: patient.abha_id,
+      trends
+    });
+  } catch (error) {
+    console.error('[Patient Trends Error]', error);
+    res.status(500).json({ error: 'Failed to retrieve patient vital trends' });
+  }
+});
+
+/**
+ * GET /api/patients/:id/fhir
+ * Generates an Ayushman Bharat Digital Mission (ABDM) compliant HL7 FHIR R4 Document Bundle.
+ */
+router.get('/:id/fhir', authenticateToken, async (req, res) => {
+  try {
+    const pool = getPool();
+    const { id } = req.params;
+
+    const [patientRows] = await pool.query('SELECT * FROM patients WHERE id = ?', [id]);
+    if (patientRows.length === 0) {
+      return res.status(404).json({ error: 'Patient not found' });
+    }
+    const patient = patientRows[0];
+
+    const [checkinRows] = await pool.query(
+      `SELECT * FROM check_ins 
+       WHERE patient_id = ? AND completed_at IS NOT NULL 
+       ORDER BY completed_at DESC LIMIT 5`,
+      [id]
+    );
+
+    const [flagRows] = await pool.query(
+      `SELECT * FROM flags WHERE patient_id = ? ORDER BY created_at DESC LIMIT 5`,
+      [id]
+    );
+
+    const entries = [];
+
+    // 1. FHIR Patient Resource
+    entries.push({
+      fullUrl: `urn:uuid:${patient.id}`,
+      resource: {
+        resourceType: 'Patient',
+        id: patient.id,
+        meta: {
+          profile: ['https://nrces.in/ndhm/fhir/r4/StructureDefinition/Patient']
+        },
+        identifier: [
+          {
+            system: 'https://healthid.ndhm.gov.in',
+            type: {
+              coding: [{ system: 'http://terminology.hl7.org/CodeSystem/v2-0203', code: 'MR', display: 'Medical Record Number' }]
+            },
+            value: patient.abha_id || `ABHA-TEMP-${patient.id.substring(0, 8)}`
+          }
+        ],
+        active: true,
+        name: [{ text: patient.pseudonym }],
+        address: [
+          {
+            use: 'home',
+            text: patient.village_or_ward,
+            district: 'Sitapur',
+            state: 'Uttar Pradesh',
+            country: 'IND'
+          }
+        ],
+        extension: [
+          {
+            url: 'https://swasthyasense.nhm.gov.in/fhir/StructureDefinition/cohort',
+            valueString: patient.cohort
+          },
+          {
+            url: 'https://swasthyasense.nhm.gov.in/fhir/StructureDefinition/dpdp-consent',
+            valueString: patient.consent_status
+          }
+        ]
+      }
+    });
+
+    // 2. Observations for each completed check-in vitals
+    for (const c of checkinRows) {
+      const m = typeof c.measurements === 'string' ? JSON.parse(c.measurements || '{}') : (c.measurements || {});
+      const effectiveDateTime = c.completed_at ? new Date(c.completed_at).toISOString() : new Date().toISOString();
+
+      if (m.systolic && m.diastolic) {
+        entries.push({
+          fullUrl: `urn:uuid:obs-bp-${c.id}`,
+          resource: {
+            resourceType: 'Observation',
+            id: `obs-bp-${c.id}`,
+            status: 'final',
+            category: [{
+              coding: [{ system: 'http://terminology.hl7.org/CodeSystem/observation-category', code: 'vital-signs', display: 'Vital Signs' }]
+            }],
+            code: {
+              coding: [{ system: 'http://loinc.org', code: '85354-9', display: 'Blood pressure panel' }],
+              text: 'Blood pressure systolic & diastolic'
+            },
+            subject: { reference: `urn:uuid:${patient.id}`, display: patient.pseudonym },
+            effectiveDateTime,
+            component: [
+              {
+                code: { coding: [{ system: 'http://loinc.org', code: '8480-6', display: 'Systolic blood pressure' }] },
+                valueQuantity: { value: Number(m.systolic), unit: 'mmHg', system: 'http://unitsofmeasure.org', code: 'mm[Hg]' }
+              },
+              {
+                code: { coding: [{ system: 'http://loinc.org', code: '8462-4', display: 'Diastolic blood pressure' }] },
+                valueQuantity: { value: Number(m.diastolic), unit: 'mmHg', system: 'http://unitsofmeasure.org', code: 'mm[Hg]' }
+              }
+            ]
+          }
+        });
+      }
+
+      if (m.fastingGlucose || m.randomGlucose) {
+        const glucVal = Number(m.fastingGlucose || m.randomGlucose);
+        const isFasting = Boolean(m.fastingGlucose);
+        entries.push({
+          fullUrl: `urn:uuid:obs-glu-${c.id}`,
+          resource: {
+            resourceType: 'Observation',
+            id: `obs-glu-${c.id}`,
+            status: 'final',
+            code: {
+              coding: [{
+                system: 'http://loinc.org',
+                code: isFasting ? '1558-6' : '2339-0',
+                display: isFasting ? 'Fasting glucose in Blood' : 'Glucose in Blood'
+              }],
+              text: isFasting ? 'Fasting Blood Glucose' : 'Random Blood Glucose'
+            },
+            subject: { reference: `urn:uuid:${patient.id}` },
+            effectiveDateTime,
+            valueQuantity: { value: glucVal, unit: 'mg/dL', system: 'http://unitsofmeasure.org', code: 'mg/dL' }
+          }
+        });
+      }
+    }
+
+    // 3. RiskAssessment Resources for Active Flags
+    for (const f of flagRows) {
+      entries.push({
+        fullUrl: `urn:uuid:risk-${f.id}`,
+        resource: {
+          resourceType: 'RiskAssessment',
+          id: `risk-${f.id}`,
+          status: 'final',
+          subject: { reference: `urn:uuid:${patient.id}` },
+          occurrenceDateTime: new Date(f.created_at).toISOString(),
+          prediction: [
+            {
+              outcome: { text: `Rule ${f.rule_id} Alert: ${f.severity}` },
+              qualitativeRisk: {
+                coding: [{ system: 'http://terminology.hl7.org/CodeSystem/risk-probability', code: f.severity }]
+              }
+            }
+          ],
+          note: [{ text: 'Generated by Swasthya Sense deterministic rule engine. Illustrative, requires clinician sign-off.' }]
+        }
+      });
+    }
+
+    const fhirBundle = {
+      resourceType: 'Bundle',
+      id: `bundle-swasthya-${patient.id}`,
+      meta: {
+        lastUpdated: new Date().toISOString(),
+        profile: ['https://nrces.in/ndhm/fhir/r4/StructureDefinition/DocumentBundle']
+      },
+      type: 'collection',
+      timestamp: new Date().toISOString(),
+      total: entries.length,
+      entry: entries
+    };
+
+    res.json(fhirBundle);
+  } catch (error) {
+    console.error('[FHIR Export Error]', error);
+    res.status(500).json({ error: 'Failed to generate ABDM FHIR R4 Bundle' });
   }
 });
 

@@ -216,7 +216,9 @@ export default function CheckInForm({ patient, existingCheckInId, onClose, onSuc
       if (temperatureF) measurements.temperatureF = Number(temperatureF);
       if (heartRate) measurements.heartRate = Number(heartRate);
 
+      const clientUuid = `chk-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
       const payload = {
+        client_uuid: clientUuid,
         patient_id: patient.id || patient.patient_id,
         existing_check_in_id: existingCheckInId,
         channel,

@@ -112,7 +112,8 @@ async function seed() {
       village_or_ward: wards[i % wards.length],
       cohort: 'antenatal',
       assigned_worker_id: 'usr-worker-01',
-      consent_status: 'consented'
+      consent_status: 'consented',
+      abha_id: `91-${1000 + i}-${2000 + i}-${3000 + i}`
     });
   }
 
@@ -126,7 +127,8 @@ async function seed() {
       village_or_ward: wards[i % wards.length],
       cohort: 'hypertension',
       assigned_worker_id: 'usr-worker-01',
-      consent_status: 'consented'
+      consent_status: 'consented',
+      abha_id: `91-${4000 + i}-${5000 + i}-${6000 + i}`
     });
   }
 
@@ -141,15 +143,16 @@ async function seed() {
       cohort: 'diabetes',
       assigned_worker_id: 'usr-worker-01',
       // Edge Case 4: Non-consented patient
-      consent_status: i === 1 ? 'declined' : 'consented'
+      consent_status: i === 1 ? 'declined' : 'consented',
+      abha_id: `91-${7000 + i}-${8000 + i}-${9000 + i}`
     });
   }
 
   for (const p of patients) {
     await pool.query(
-      `INSERT INTO patients (id, pseudonym, age_band, village_or_ward, cohort, assigned_worker_id, consent_status, consent_updated_at, created_at)
-       VALUES (?, ?, ?, ?, ?, ?, ?, NOW(), NOW())`,
-      [p.id, p.pseudonym, p.age_band, p.village_or_ward, p.cohort, p.assigned_worker_id, p.consent_status]
+      `INSERT INTO patients (id, pseudonym, age_band, village_or_ward, cohort, assigned_worker_id, consent_status, abha_id, consent_updated_at, created_at)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, NOW(), NOW())`,
+      [p.id, p.pseudonym, p.age_band, p.village_or_ward, p.cohort, p.assigned_worker_id, p.consent_status, p.abha_id]
     );
   }
   console.log(`[Seed] Inserted ${patients.length} synthetic patients.`);

@@ -330,5 +330,97 @@ export function evaluateRules({
     }
   }
 
+  // -------------------------------------------------------------
+  // R9: GESTATIONAL WEIGHT ANOMALY (Antenatal cohort)
+  // -------------------------------------------------------------
+  const ruleR9 = ruleMap.get('R9');
+  if (ruleR9 && ruleR9.thresholds && patient.cohort === 'antenatal') {
+    const currentWeight = Number(measurements.weightKg);
+    if (!isNaN(currentWeight)) {
+      let previousWeight = null;
+      for (const past of pastCheckIns) {
+        if (!past.measurements) continue;
+        const pastM = typeof past.measurements === 'string'
+          ? JSON.parse(past.measurements)
+          : past.measurements;
+        const pw = Number(pastM.weightKg);
+        if (!isNaN(pw)) {
+          previousWeight = pw;
+          break;
+        }
+      }
+
+      if (previousWeight !== null) {
+        const delta = Math.round((currentWeight - previousWeight) * 10) / 10;
+        const maxGain = ruleR9.thresholds.maxFortnightGainKg || 2.0;
+        const maxLoss = ruleR9.thresholds.maxLossKg || 1.0;
+
+        if (delta > maxGain || delta < -maxLoss) {
+          flags.push({
+            rule_id: 'R9',
+            type: ruleR9.type,
+            severity: ruleR9.severity,
+            rule_version: version,
+            explanation: ruleR9.explanationTemplate
+              .replace('{weightChange}', delta > 0 ? `+${delta}` : String(delta))
+              .replace('{threshold}', String(delta > 0 ? maxGain : maxLoss)),
+            triggering_values: {
+              currentWeight,
+              previousWeight,
+              deltaKg: delta,
+              threshold: delta > 0 ? maxGain : maxLoss
+            }
+          });
+        }
+      }
+    }
+  }
+
+  // -------------------------------------------------------------
+  // R10: CARDIORESPIRATORY DECOMPENSATION (SpO2 / Heart Rate)
+  // -------------------------------------------------------------
+  const ruleR10 = ruleMap.get('R10');
+  if (ruleR10 && ruleR10.thresholds) {
+    const spo2 = measurements.spo2 !== undefined ? Number(measurements.spo2) : NaN;
+    const hr = measurements.heartRate !== undefined ? Number(measurements.heartRate) : NaN;
+
+    if (!isNaN(spo2) && spo2 < ruleR10.thresholds.spo2Min) {
+      flags.push({
+        rule_id: 'R10',
+        type: ruleR10.type,
+        severity: ruleR10.severity,
+        rule_version: version,
+        explanation: ruleR10.explanationTemplate
+          .replace('{metric}', 'SpO2 Oxygen Saturation')
+          .replace('{value}', `${spo2}%`),
+        triggering_values: {
+          metric: 'spo2',
+          value: spo2,
+          threshold: ruleR10.thresholds.spo2Min
+        }
+      });
+    }
+
+    if (!isNaN(hr)) {
+      if (hr > ruleR10.thresholds.heartRateMax || hr < ruleR10.thresholds.heartRateMin) {
+        flags.push({
+          rule_id: 'R10',
+          type: ruleR10.type,
+          severity: ruleR10.severity,
+          rule_version: version,
+          explanation: ruleR10.explanationTemplate
+            .replace('{metric}', 'Heart Rate / Pulse')
+            .replace('{value}', `${hr} bpm`),
+          triggering_values: {
+            metric: 'heartRate',
+            value: hr,
+            min: ruleR10.thresholds.heartRateMin,
+            max: ruleR10.thresholds.heartRateMax
+          }
+        });
+      }
+    }
+  }
+
   return flags;
 }

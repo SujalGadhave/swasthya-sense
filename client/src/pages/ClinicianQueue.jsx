@@ -18,6 +18,38 @@ export default function ClinicianQueue() {
   const [submitting, setSubmitting] = useState(false);
   const [toastMessage, setToastMessage] = useState('');
   const [speakingEscId, setSpeakingEscId] = useState(null);
+  const [selectedFhirModal, setSelectedFhirModal] = useState(null);
+
+  const handleExportFhir = async (esc) => {
+    setSelectedFhirModal({ patient: esc, bundle: null, loading: true, copied: false });
+    try {
+      const bundle = await api.patients.getFhir(esc.patient_id);
+      setSelectedFhirModal({ patient: esc, bundle, loading: false, copied: false });
+    } catch (err) {
+      alert('Failed to load FHIR bundle: ' + err.message);
+      setSelectedFhirModal(null);
+    }
+  };
+
+  const handleCopyFhir = () => {
+    if (!selectedFhirModal?.bundle) return;
+    navigator.clipboard.writeText(JSON.stringify(selectedFhirModal.bundle, null, 2));
+    setSelectedFhirModal(prev => ({ ...prev, copied: true }));
+    setTimeout(() => {
+      setSelectedFhirModal(prev => (prev ? { ...prev, copied: false } : null));
+    }, 2500);
+  };
+
+  const handleDownloadFhir = () => {
+    if (!selectedFhirModal?.bundle) return;
+    const blob = new Blob([JSON.stringify(selectedFhirModal.bundle, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `FHIR-R4-${selectedFhirModal.patient?.pseudonym || 'patient'}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
 
   const fetchQueue = async (filter) => {
     setLoading(true);
@@ -237,6 +269,11 @@ export default function ClinicianQueue() {
                       <span className="meta-tag tag-cohort">{esc.cohort?.toUpperCase()}</span>
                       <span className="meta-tag tag-location">📍 {getLocalizedVillage(esc.village_or_ward, lang)}</span>
                       <span className="meta-tag tag-age">👤 {esc.age_band}</span>
+                      {esc.abha_id && (
+                        <span className="meta-tag tag-abha" title="Ayushman Bharat Health Account ID">
+                          🆔 ABHA: {esc.abha_id}
+                        </span>
+                      )}
                     </div>
                     <span className="escalation-byline">
                       Escalated by {esc.escalated_by_worker || 'Frontline Worker'} on {new Date(esc.escalated_at).toLocaleString()}
@@ -337,6 +374,14 @@ export default function ClinicianQueue() {
                 <div className="queue-card-actions">
                   <button className="btn btn-primary" onClick={() => handleOpenReview(esc)}>
                     🩺 {isPending ? 'Review Case & Record Decision' : 'Update Clinical Notes'}
+                  </button>
+                  <button
+                    type="button"
+                    className="btn btn-secondary btn-fhir-action"
+                    onClick={() => handleExportFhir(esc)}
+                    title="Export standard HL7 FHIR R4 Document Bundle for ABDM"
+                  >
+                    🌐 Export FHIR R4 (ABDM)
                   </button>
                 </div>
               </div>
@@ -465,6 +510,79 @@ export default function ClinicianQueue() {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* ABDM HL7 FHIR R4 Export Modal */}
+      {selectedFhirModal && (
+        <div className="modal-overlay">
+          <div className="modal-container fhir-export-modal" style={{ maxWidth: '780px' }}>
+            <div className="modal-header">
+              <div>
+                <h3>🌐 ABDM / HL7 FHIR R4 Document Bundle</h3>
+                <span className="modal-subtitle">
+                  Patient: {selectedFhirModal.patient?.pseudonym} · ABHA ID: {selectedFhirModal.patient?.abha_id || 'Auto-Assigned'} · Ayushman Bharat Digital Mission Compatible
+                </span>
+              </div>
+              <button className="btn-close" onClick={() => setSelectedFhirModal(null)}>✕</button>
+            </div>
+
+            <div className="modal-body" style={{ marginTop: '0.75rem' }}>
+              {selectedFhirModal.loading ? (
+                <div style={{ padding: '2rem', textAlign: 'center' }}>Generating FHIR R4 Bundle from clinical ledger...</div>
+              ) : (
+                <>
+                  <div className="fhir-spec-banner" style={{ background: '#f8fafc', padding: '0.75rem 1rem', borderRadius: '6px', marginBottom: '0.75rem', border: '1px solid #e2e8f0', fontSize: '0.85rem' }}>
+                    <p style={{ margin: 0 }}>
+                      ✓ Standard: <strong>HL7 FHIR Release 4 (R4) Document Bundle</strong> • Resources: <code>Patient</code>, <code>Observation</code> (LOINC Vitals), <code>RiskAssessment</code>.
+                    </p>
+                  </div>
+                  <pre
+                    style={{
+                      maxHeight: '340px',
+                      overflowY: 'auto',
+                      background: '#0f172a',
+                      color: '#38bdf8',
+                      padding: '1rem',
+                      borderRadius: '6px',
+                      fontSize: '0.82rem',
+                      fontFamily: 'Consolas, monospace',
+                      whiteSpace: 'pre-wrap',
+                      wordBreak: 'break-all'
+                    }}
+                  >
+                    {JSON.stringify(selectedFhirModal.bundle, null, 2)}
+                  </pre>
+                </>
+              )}
+            </div>
+
+            <div className="modal-actions" style={{ display: 'flex', gap: '0.75rem', justifyContent: 'flex-end', marginTop: '1rem' }}>
+              <button
+                type="button"
+                className="btn btn-secondary"
+                onClick={handleCopyFhir}
+                disabled={selectedFhirModal.loading}
+              >
+                {selectedFhirModal.copied ? '✓ Copied to Clipboard!' : '📋 Copy FHIR JSON'}
+              </button>
+              <button
+                type="button"
+                className="btn btn-primary"
+                onClick={handleDownloadFhir}
+                disabled={selectedFhirModal.loading}
+              >
+                💾 Download FHIR-R4.json
+              </button>
+              <button
+                type="button"
+                className="btn btn-secondary"
+                onClick={() => setSelectedFhirModal(null)}
+              >
+                Close
+              </button>
+            </div>
           </div>
         </div>
       )}

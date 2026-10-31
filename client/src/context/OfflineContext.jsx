@@ -56,13 +56,18 @@ export function OfflineProvider({ children }) {
    * Queue a check-in locally when offline.
    */
   const queueCheckIn = (patient, payload) => {
+    const clientUuid = `chk-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
     const queueItem = {
       id: `offline-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`,
+      client_uuid: clientUuid,
       patient_id: patient.id || patient.patient_id,
       pseudonym: patient.pseudonym,
       cohort: patient.cohort,
       village_or_ward: patient.village_or_ward || 'Ward 3 (Sitapur)',
-      payload,
+      payload: {
+        ...payload,
+        client_uuid: clientUuid,
+      },
       queuedAt: new Date().toISOString(),
     };
 

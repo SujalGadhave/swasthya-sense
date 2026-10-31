@@ -24,6 +24,7 @@ export default function WorkerDashboard() {
   const [filter, setFilter] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [cohortFilter, setCohortFilter] = useState('all');
+  const [sortMode, setSortMode] = useState('urgency');
   const [simpleMode, setSimpleMode] = useState(true);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -172,9 +173,22 @@ export default function WorkerDashboard() {
       const nameEn = getPatientDisplayName(patient.pseudonym, 'en').toLowerCase();
       const pseudo = (patient.pseudonym || '').toLowerCase();
       const village = (patient.village_or_ward || '').toLowerCase();
-      return nameHi.includes(q) || nameEn.includes(q) || pseudo.includes(q) || village.includes(q);
+      const abha = (patient.abha_id || '').toLowerCase();
+      return nameHi.includes(q) || nameEn.includes(q) || pseudo.includes(q) || village.includes(q) || abha.includes(q);
     }
     return true;
+  });
+
+  const sortedPatients = [...displayedPatients].sort((a, b) => {
+    if (sortMode === 'proximity') {
+      const wardCmp = (a.village_or_ward || '').localeCompare(b.village_or_ward || '');
+      if (wardCmp !== 0) return wardCmp;
+      return a.priorityRank - b.priorityRank;
+    }
+    if (a.priorityRank !== b.priorityRank) {
+      return a.priorityRank - b.priorityRank;
+    }
+    return (b.days_overdue || 0) - (a.days_overdue || 0);
   });
 
   return (
@@ -454,6 +468,26 @@ export default function WorkerDashboard() {
             🩸 {lang === 'hi' ? 'मधुमेह (Sugar)' : 'Diabetes'}
           </button>
         </div>
+
+        {/* Route Optimization vs Urgency Sorting Bar */}
+        <div className="route-sort-controls" role="group" aria-label="Route Order">
+          <button
+            type="button"
+            className={`route-sort-btn ${sortMode === 'urgency' ? 'is-active' : ''}`}
+            onClick={() => setSortMode('urgency')}
+            title="Sort by highest clinical risk and overdue severity"
+          >
+            🚨 {lang === 'hi' ? 'खतरे / प्राथमिकता अनुसार' : 'Urgency Ranked'}
+          </button>
+          <button
+            type="button"
+            className={`route-sort-btn ${sortMode === 'proximity' ? 'is-active' : ''}`}
+            onClick={() => setSortMode('proximity')}
+            title="Group by village ward for shortest walking path"
+          >
+            🚶 {lang === 'hi' ? 'गांव / वार्ड अनुसार (पैदल मार्ग)' : 'Doorstep Walking Route'}
+          </button>
+        </div>
       </div>
 
       {/* Prioritized Patient Call List with Shimmer Skeletons */}
@@ -477,14 +511,14 @@ export default function WorkerDashboard() {
             </div>
           ))}
         </div>
-      ) : displayedPatients.length === 0 ? (
+      ) : sortedPatients.length === 0 ? (
         <div className="empty-state">
           <h3>{lang === 'hi' ? 'कोई मरीज़ नहीं मिला' : 'No matching patients found'}</h3>
           <p>{lang === 'hi' ? 'खोज या फ़िल्टर बदलकर दोबारा प्रयास करें।' : 'Try adjusting your search query or cohort filter.'}</p>
         </div>
       ) : (
         <div className="call-list-grid">
-          {displayedPatients.map((patient) => {
+          {sortedPatients.map((patient) => {
             const hasClinical = patient.priorityRank === 1;
             const hasOverdue = patient.priorityRank === 2 || patient.priorityRank === 3;
             const displayName = getPatientDisplayName(patient.pseudonym, lang);
@@ -552,6 +586,11 @@ export default function WorkerDashboard() {
                     <div className="patient-meta-tags">
                       <span className="meta-tag tag-location">📍 {localizedVillage}</span>
                       <span className="meta-tag tag-age">👤 {localizedAge}</span>
+                      {patient.abha_id && (
+                        <span className="meta-tag tag-abha" title="Ayushman Bharat Health Account ID">
+                          🆔 ABHA: {patient.abha_id}
+                        </span>
+                      )}
                       <span className={`consent-badge consent-${patient.consent_status}`}>
                         {patient.consent_status === 'consented' ? t('consent_yes') : t('consent_no')}
                       </span>

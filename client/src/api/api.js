@@ -53,6 +53,8 @@ export const api = {
     getCallList: (filter = 'all') => request(`/patients/call-list?filter=${filter}`),
     getAll: () => request('/patients'),
     getById: (id) => request(`/patients/${id}`),
+    getFhir: (id) => request(`/patients/${id}/fhir`),
+    getTrends: (id) => request(`/patients/${id}/trends`),
     toggleConsent: (id, consent_status) =>
       request(`/patients/${id}/consent`, {
         method: 'PATCH',
@@ -66,6 +68,11 @@ export const api = {
       request('/checkins', {
         method: 'POST',
         body: JSON.stringify(data),
+      }),
+    record: (patientId, payload = {}) =>
+      request('/checkins', {
+        method: 'POST',
+        body: JSON.stringify({ patient_id: patientId, ...payload, is_offline_sync: true }),
       }),
     getHistory: (patientId) => request(`/checkins/patient/${patientId}`),
   },
@@ -116,4 +123,7 @@ export const api = {
     getAll: (params = '') => request(`/messages${params ? `?${params}` : ''}`),
   },
 };
+
+// Aliases for compatibility
+api.checkIns = api.checkins;
 

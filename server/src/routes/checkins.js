@@ -21,6 +21,7 @@ router.post('/', authenticateToken, async (req, res) => {
   try {
     const {
       patient_id,
+      client_uuid = null,
       channel = 'in_person',
       symptoms = [],
       measurements = {},
@@ -30,6 +31,48 @@ router.post('/', authenticateToken, async (req, res) => {
 
     if (!patient_id) {
       return res.status(400).json({ error: 'Patient ID is required' });
+    }
+
+    // Input sanity validation
+    if (measurements && typeof measurements === 'object') {
+      if (measurements.systolic !== undefined && measurements.systolic !== null && measurements.systolic !== '') {
+        const sys = Number(measurements.systolic);
+        if (isNaN(sys) || sys < 30 || sys > 350) {
+          conn.release();
+          return res.status(400).json({ error: 'Invalid systolic blood pressure value' });
+        }
+      }
+      if (measurements.diastolic !== undefined && measurements.diastolic !== null && measurements.diastolic !== '') {
+        const dia = Number(measurements.diastolic);
+        if (isNaN(dia) || dia < 20 || dia > 250) {
+          conn.release();
+          return res.status(400).json({ error: 'Invalid diastolic blood pressure value' });
+        }
+      }
+    }
+
+    // Idempotency check: if client_uuid is provided, check if already processed
+    if (client_uuid) {
+      const [existingRows] = await pool.query(
+        'SELECT * FROM check_ins WHERE client_uuid = ?',
+        [client_uuid]
+      );
+      if (existingRows.length > 0) {
+        const existingCheckIn = existingRows[0];
+        const [existingFlags] = await pool.query(
+          'SELECT * FROM flags WHERE check_in_id = ?',
+          [existingCheckIn.id]
+        );
+        conn.release();
+        return res.status(200).json({
+          success: true,
+          already_processed: true,
+          checkInId: existingCheckIn.id,
+          flags: existingFlags,
+          nextDueDate: existingCheckIn.due_date,
+          message: 'Check-in was previously recorded (idempotent duplicate rejected)'
+        });
+      }
     }
 
     await conn.beginTransaction();
@@ -61,16 +104,17 @@ router.post('/', authenticateToken, async (req, res) => {
     if (existing_check_in_id) {
       await conn.query(
         `UPDATE check_ins 
-         SET completed_at = NOW(), channel = ?, symptoms = ?, measurements = ?, notes = ?
+         SET client_uuid = COALESCE(?, client_uuid), completed_at = NOW(), channel = ?, symptoms = ?, measurements = ?, notes = ?
          WHERE id = ?`,
-        [channel, JSON.stringify(symptoms), JSON.stringify(measurements), notes, existing_check_in_id]
+        [client_uuid, channel, JSON.stringify(symptoms), JSON.stringify(measurements), notes, existing_check_in_id]
       );
     } else {
       await conn.query(
-        `INSERT INTO check_ins (id, patient_id, worker_id, due_date, completed_at, channel, symptoms, measurements, notes)
-         VALUES (?, ?, ?, ?, NOW(), ?, ?, ?, ?)`,
+        `INSERT INTO check_ins (id, client_uuid, patient_id, worker_id, due_date, completed_at, channel, symptoms, measurements, notes)
+         VALUES (?, ?, ?, ?, ?, NOW(), ?, ?, ?, ?)`,
         [
           checkInId,
+          client_uuid,
           patient_id,
           req.user.id,
           todayStr,
