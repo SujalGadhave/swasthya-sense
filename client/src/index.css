@@ -4169,3 +4169,395 @@ body {
   color: #94a3b8;
 }
 
+/* ============================================================
+   RESPONSIVE DESIGN & MOBILE PWA NAVIGATION (Field-Ready UI)
+   Inspired by NHS & Ayushman Bharat Mobile Healthcare Design Systems
+   ============================================================ */
+
+/* Mobile Bottom Navigation Bar (PWA Style, Fixed, Thumb-Friendly) */
+.mobile-bottom-nav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: calc(64px + env(safe-area-inset-bottom, 0px));
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  background-color: var(--color-nav-bg);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-top: 1px solid var(--color-border);
+  box-shadow: 0 -4px 15px rgba(0, 0, 0, 0.08);
+  z-index: 999;
+  transition: background-color 0.25s ease, border-color 0.25s ease;
+}
+
+[data-theme="dark"] .mobile-bottom-nav {
+  background-color: rgba(19, 29, 46, 0.94);
+  border-top-color: #24354f;
+  box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.45);
+}
+
+.mobile-nav-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  flex: 1;
+  min-height: 50px;
+  text-decoration: none;
+  color: var(--color-text-muted);
+  font-size: 0.72rem;
+  font-weight: 600;
+  gap: 2px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  position: relative;
+  padding: 4px 0;
+}
+
+.mobile-nav-icon {
+  font-size: 1.25rem;
+  line-height: 1;
+  position: relative;
+  display: inline-block;
+  transition: transform 0.15s ease;
+}
+
+.mobile-nav-badge {
+  position: absolute;
+  top: -4px;
+  right: -9px;
+  background: #ef4444;
+  color: #ffffff;
+  font-size: 0.65rem;
+  font-weight: 800;
+  border-radius: 9999px;
+  padding: 1px 5px;
+  min-width: 16px;
+  text-align: center;
+}
+
+.mobile-nav-item:hover,
+.mobile-nav-item.active {
+  color: var(--color-primary);
+  font-weight: 700;
+}
+
+.mobile-nav-item.active .mobile-nav-icon {
+  transform: translateY(-2px);
+}
+
+.mobile-nav-item.active::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  width: 24px;
+  height: 3px;
+  border-radius: 3px;
+  background: var(--color-primary);
+}
+
+/* Hide Mobile Bottom Nav on Desktop (≥ 992px) */
+@media (min-width: 992px) {
+  .mobile-bottom-nav {
+    display: none;
+  }
+}
+
+/* TABLET & MOBILE VIEWPORT OPTIMIZATIONS (< 992px) */
+@media (max-width: 991px) {
+  body {
+    padding-bottom: calc(72px + env(safe-area-inset-bottom, 0px));
+  }
+
+  .page-container {
+    padding: 0 1rem 1.5rem 1rem;
+    margin: 1rem auto;
+  }
+
+  .navbar {
+    padding: 0.6rem 1rem;
+    gap: 0.75rem;
+  }
+
+  /* Desktop links are handled by Mobile Bottom Nav */
+  .navbar-links {
+    display: none;
+  }
+
+  .btn-sim-launcher {
+    display: none;
+  }
+
+  .brand-title {
+    font-size: 1.05rem;
+  }
+
+  .brand-subtitle {
+    display: none;
+  }
+
+  .navbar-actions {
+    gap: 0.45rem;
+    flex-wrap: nowrap;
+  }
+
+  .persona-switcher {
+    padding: 0.15rem 0.35rem;
+  }
+
+  .persona-label {
+    display: none;
+  }
+
+  .persona-btn {
+    padding: 0.2rem 0.4rem;
+    font-size: 0.72rem;
+  }
+
+  .user-badge {
+    display: none;
+  }
+
+  .lang-pill-btn {
+    padding: 0.25rem 0.55rem;
+    font-size: 0.75rem;
+  }
+
+  .theme-toggle-label {
+    display: none;
+  }
+
+  .theme-toggle-btn {
+    padding: 0.3rem 0.5rem;
+  }
+
+  .page-header {
+    margin-bottom: 1rem;
+  }
+
+  .page-header h2 {
+    font-size: 1.35rem;
+  }
+}
+
+/* MOBILE PHONES (< 768px) — NATIVE BOTTOM SHEETS & ERGONOMIC TOUCH TARGETS */
+@media (max-width: 767px) {
+  /* Modals transform into bottom-sheets */
+  .modal-overlay {
+    align-items: flex-end !important;
+    padding: 0 !important;
+  }
+
+  .modal-container {
+    width: 100% !important;
+    max-width: 100% !important;
+    border-radius: 24px 24px 0 0 !important;
+    max-height: 92vh;
+    overflow-y: auto;
+    margin: 0 !important;
+    padding: 1rem 1.15rem 2rem 1.15rem !important;
+    box-shadow: 0 -10px 30px rgba(0, 0, 0, 0.45);
+    animation: slideUpSheet 0.32s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  @keyframes slideUpSheet {
+    from { transform: translateY(100%); }
+    to { transform: translateY(0); }
+  }
+
+  /* Visual drag handle cue */
+  .modal-container::before {
+    content: '';
+    display: block;
+    width: 44px;
+    height: 4px;
+    background: #cbd5e1;
+    border-radius: 2px;
+    margin: 0 auto 0.9rem auto;
+  }
+
+  [data-theme="dark"] .modal-container::before {
+    background: #334155;
+  }
+
+  .modal-header {
+    margin-bottom: 1rem;
+  }
+
+  /* Sticky Action Bar at bottom of Sheet */
+  .modal-actions {
+    position: sticky;
+    bottom: -1rem;
+    background: var(--color-card-bg);
+    padding: 0.85rem 0 0.5rem 0;
+    margin-top: 1rem;
+    border-top: 1px solid var(--color-border);
+    z-index: 10;
+  }
+
+  /* Patient Card Call Grid */
+  .call-card-top {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.85rem;
+  }
+
+  .patient-schedule-info {
+    text-align: left;
+    border-top: 1px dashed var(--color-border);
+    padding-top: 0.65rem;
+  }
+
+  /* 2-Column Ergonomic Thumb Grid for Card Buttons */
+  .call-card-actions {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.5rem;
+  }
+
+  .asha-touch-actions .btn {
+    min-height: 48px;
+    justify-content: center;
+    text-align: center;
+    font-size: 0.82rem;
+  }
+
+  .btn-emergency-108 {
+    grid-column: span 2;
+    min-height: 48px;
+    justify-content: center;
+  }
+
+  .btn-escalate {
+    grid-column: span 2;
+    min-height: 48px;
+    justify-content: center;
+  }
+
+  /* Frontline ASHA Welcome Banner */
+  .asha-welcome-banner {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.85rem;
+    padding: 1rem;
+  }
+
+  .asha-mode-switch-container {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .asha-mode-btn {
+    flex: 1;
+    text-align: center;
+    padding: 0.5rem;
+  }
+
+  /* 3-Bucket Priorities on Mobile */
+  .asha-simple-priorities-grid {
+    grid-template-columns: 1fr;
+    gap: 0.75rem;
+  }
+
+  .asha-priority-card {
+    min-height: 120px;
+    padding: 1.15rem;
+  }
+
+  .priority-big-number {
+    font-size: 2.1rem;
+  }
+
+  /* NHM Scorecard Grid on Mobile */
+  .nhm-kpi-grid {
+    grid-template-columns: 1fr;
+    gap: 0.75rem;
+  }
+
+  .nhm-scorecard-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  /* Horizontal Scrolling for Data Tables */
+  .content-card {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    border-radius: var(--radius-md);
+  }
+
+  .data-table {
+    min-width: 600px;
+  }
+
+  /* Search & Filter Bar on Mobile */
+  .filter-bar {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.65rem;
+  }
+
+  .search-input {
+    min-width: 100%;
+  }
+
+  .cohort-filter-buttons {
+    display: flex;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: 0.35rem;
+    gap: 0.4rem;
+  }
+
+  .cohort-filter-buttons .filter-chip {
+    white-space: nowrap;
+  }
+
+  /* Danger Signs Touch Grid inside Modal */
+  .danger-cards-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .danger-touch-card {
+    min-height: 52px;
+  }
+
+  /* Quick action presets for clinician on mobile */
+  .quick-action-presets {
+    flex-direction: column;
+  }
+
+  .preset-btn {
+    width: 100%;
+    padding: 0.6rem 0.8rem;
+    font-size: 0.82rem;
+  }
+}
+
+/* ULTRA-SMALL SMARTPHONES (< 400px) */
+@media (max-width: 400px) {
+  .brand-title {
+    font-size: 0.95rem;
+  }
+
+  .lang-pill-btn {
+    padding: 0.2rem 0.45rem;
+    font-size: 0.72rem;
+  }
+
+  .call-card-actions {
+    grid-template-columns: 1fr;
+  }
+
+  .mobile-nav-label {
+    font-size: 0.65rem;
+  }
+}
+
+

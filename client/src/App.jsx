@@ -5,6 +5,7 @@ import { LanguageProvider } from './context/LanguageContext.jsx';
 import { OfflineProvider } from './context/OfflineContext.jsx';
 import { ThemeProvider } from './context/ThemeContext.jsx';
 import NavBar from './components/NavBar.jsx';
+import MobileBottomNav from './components/MobileBottomNav.jsx';
 
 import Login from './pages/Login.jsx';
 import WorkerDashboard from './pages/WorkerDashboard.jsx';
@@ -138,6 +139,7 @@ export default function App() {
               <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
           </main>
+          <MobileBottomNav />
         </BrowserRouter>
         </OfflineProvider>
       </AuthProvider>
