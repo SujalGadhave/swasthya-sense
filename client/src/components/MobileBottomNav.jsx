@@ -12,7 +12,7 @@ import { useOffline } from '../context/OfflineContext.jsx';
 export default function MobileBottomNav() {
   const { user } = useAuth();
   const { lang } = useLanguage();
-  const { queueCount, openSimulator } = useOffline();
+  const { queueCount, syncQueue } = useOffline();
 
   if (!user) return null;
 
@@ -54,17 +54,20 @@ export default function MobileBottomNav() {
         <span className="mobile-nav-label">{lang === 'hi' ? 'प्रभारी' : 'In-Charge'}</span>
       </NavLink>
 
-      <button
-        type="button"
-        className="mobile-nav-item mobile-nav-btn"
-        onClick={openSimulator}
-        title={lang === 'hi' ? 'ऑफ़लाइन सिंक सिम्युलेटर' : 'Offline Sync Simulator'}
-      >
-        <span className="mobile-nav-icon">
-          📡{queueCount > 0 && <span className="mobile-nav-badge">{queueCount}</span>}
-        </span>
-        <span className="mobile-nav-label">{lang === 'hi' ? 'सिंक' : 'Sync'}</span>
-      </button>
+      {queueCount > 0 && (
+        <button
+          type="button"
+          className="mobile-nav-item mobile-nav-btn sync-active-btn"
+          onClick={syncQueue}
+          title={lang === 'hi' ? 'अभी डेटा सिंक करें' : 'Sync Queued Records Now'}
+        >
+          <span className="mobile-nav-icon">
+            🔄<span className="mobile-nav-badge">{queueCount}</span>
+          </span>
+          <span className="mobile-nav-label">{lang === 'hi' ? 'सिंक करें' : 'Sync Now'}</span>
+        </button>
+      )}
     </nav>
   );
 }
+

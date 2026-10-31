@@ -1,9 +1,5 @@
 const BASE_URL = '/api';
 
-/**
- * Generic request helper with automatic Authorization header injection
- * and transient retry support for server restarts / proxy reconnections.
- */
 async function request(endpoint, options = {}, retries = 2) {
   const token = localStorage.getItem('swasthya_token');
   const headers = {

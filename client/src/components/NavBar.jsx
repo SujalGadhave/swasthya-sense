@@ -8,7 +8,7 @@ import { useTheme } from '../context/ThemeContext.jsx';
 export default function NavBar() {
   const { user, logout, login } = useAuth();
   const { lang, setLang, t } = useLanguage();
-  const { isOffline, toggleOffline, queueCount, openSimulator } = useOffline();
+  const { isOffline, toggleOffline, queueCount } = useOffline();
   const { theme, toggleTheme } = useTheme();
   const navigate = useNavigate();
   const location = useLocation();
@@ -85,16 +85,6 @@ export default function NavBar() {
         )}
 
         <div className="navbar-actions">
-          {/* Rural Offline-Sync Queue Simulator Launch Button */}
-          <button
-            type="button"
-            className="btn-sim-launcher"
-            onClick={openSimulator}
-            title="Open Rural Low-Bandwidth & Offline-Sync Simulator"
-          >
-            📡 <span className="sim-launcher-text">{lang === 'hi' ? 'सिम्युलेटर' : 'Sync Simulator'}</span>
-          </button>
-
           {/* Offline / Online Simulated Network Toggle */}
           <button
             type="button"
