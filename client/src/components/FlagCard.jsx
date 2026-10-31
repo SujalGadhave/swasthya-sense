@@ -80,3 +80,4 @@ export default function FlagCard({ flag, onEscalate, onAcknowledge, isWorker = f
     </div>
   );
 }
+

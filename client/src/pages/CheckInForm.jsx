@@ -228,3 +228,4 @@ export default function CheckInForm({ patient, existingCheckInId, onClose, onSuc
     </div>
   );
 }
+

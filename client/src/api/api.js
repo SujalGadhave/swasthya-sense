@@ -106,3 +106,4 @@ export const api = {
     getAll: (params = '') => request(`/messages${params ? `?${params}` : ''}`),
   },
 };
+
