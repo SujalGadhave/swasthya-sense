@@ -163,3 +163,4 @@ export default function SimulatedMessageModal({ patient, onClose }) {
     </div>
   );
 }
+

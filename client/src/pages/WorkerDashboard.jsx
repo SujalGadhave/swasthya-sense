@@ -6,6 +6,7 @@ import { useOffline } from '../context/OfflineContext.jsx';
 import FlagCard from '../components/FlagCard.jsx';
 import CheckInForm from './CheckInForm.jsx';
 import SimulatedMessageModal from '../components/SimulatedMessageModal.jsx';
+import OfflineSimulatorModal from '../components/OfflineSimulatorModal.jsx';
 
 export default function WorkerDashboard() {
   const { lang, t } = useLanguage();
@@ -17,6 +18,9 @@ export default function WorkerDashboard() {
     syncing,
     syncStatus,
     clearSyncStatus,
+    isSimulatorOpen,
+    openSimulator,
+    closeSimulator,
   } = useOffline();
   const [callList, setCallList] = useState([]);
   const [filter, setFilter] = useState('all');
@@ -160,6 +164,13 @@ export default function WorkerDashboard() {
             </div>
           </div>
           <div className="offline-card-actions">
+            <button
+              type="button"
+              className="btn btn-secondary btn-open-sim"
+              onClick={openSimulator}
+            >
+              ⚙️ {lang === 'hi' ? 'सिम्युलेटर कंसोल' : 'Simulator Console'}
+            </button>
             {queueCount > 0 && (
               <button
                 type="button"
@@ -434,6 +445,14 @@ export default function WorkerDashboard() {
         <SimulatedMessageModal
           patient={selectedPatientForMessage}
           onClose={() => setSelectedPatientForMessage(null)}
+        />
+      )}
+
+      {/* Rural Low-Bandwidth & Offline-Sync Simulator Modal */}
+      {isSimulatorOpen && (
+        <OfflineSimulatorModal
+          onClose={closeSimulator}
+          onSyncComplete={() => fetchCallList(filter)}
         />
       )}
     </div>
