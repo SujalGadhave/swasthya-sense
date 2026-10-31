@@ -1,6 +1,7 @@
 import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext.jsx';
+import { LanguageProvider } from './context/LanguageContext.jsx';
 import NavBar from './components/NavBar.jsx';
 
 import Login from './pages/Login.jsx';
@@ -58,81 +59,83 @@ function HomeRedirect() {
 
 export default function App() {
   return (
-    <AuthProvider>
-      <BrowserRouter>
-        <NavBar />
-        <main>
-          <Routes>
-            <Route path="/login" element={<Login />} />
-            <Route path="/" element={<HomeRedirect />} />
+    <LanguageProvider>
+      <AuthProvider>
+        <BrowserRouter>
+          <NavBar />
+          <main>
+            <Routes>
+              <Route path="/login" element={<Login />} />
+              <Route path="/" element={<HomeRedirect />} />
 
-            {/* Health Worker Routes */}
-            <Route
-              path="/worker"
-              element={
-                <ProtectedRoute allowedRoles={['worker', 'supervisor']}>
-                  <WorkerDashboard />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/patients"
-              element={
-                <ProtectedRoute allowedRoles={['worker', 'supervisor', 'clinician']}>
-                  <PatientList />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/patient/:id"
-              element={
-                <ProtectedRoute allowedRoles={['worker', 'supervisor', 'clinician']}>
-                  <PatientDetail />
-                </ProtectedRoute>
-              }
-            />
+              {/* Health Worker Routes */}
+              <Route
+                path="/worker"
+                element={
+                  <ProtectedRoute allowedRoles={['worker', 'supervisor']}>
+                    <WorkerDashboard />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/patients"
+                element={
+                  <ProtectedRoute allowedRoles={['worker', 'supervisor', 'clinician']}>
+                    <PatientList />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/patient/:id"
+                element={
+                  <ProtectedRoute allowedRoles={['worker', 'supervisor', 'clinician']}>
+                    <PatientDetail />
+                  </ProtectedRoute>
+                }
+              />
 
-            {/* Clinician Routes */}
-            <Route
-              path="/clinician"
-              element={
-                <ProtectedRoute allowedRoles={['clinician', 'supervisor']}>
-                  <ClinicianQueue />
-                </ProtectedRoute>
-              }
-            />
+              {/* Clinician Routes */}
+              <Route
+                path="/clinician"
+                element={
+                  <ProtectedRoute allowedRoles={['clinician', 'supervisor']}>
+                    <ClinicianQueue />
+                  </ProtectedRoute>
+                }
+              />
 
-            {/* Supervisor Routes */}
-            <Route
-              path="/supervisor"
-              element={
-                <ProtectedRoute allowedRoles={['supervisor']}>
-                  <SupervisorView />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/audit"
-              element={
-                <ProtectedRoute allowedRoles={['supervisor']}>
-                  <SupervisorView />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/messages"
-              element={
-                <ProtectedRoute allowedRoles={['supervisor']}>
-                  <SupervisorView />
-                </ProtectedRoute>
-              }
-            />
+              {/* Supervisor Routes */}
+              <Route
+                path="/supervisor"
+                element={
+                  <ProtectedRoute allowedRoles={['supervisor']}>
+                    <SupervisorView />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/audit"
+                element={
+                  <ProtectedRoute allowedRoles={['supervisor']}>
+                    <SupervisorView />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/messages"
+                element={
+                  <ProtectedRoute allowedRoles={['supervisor']}>
+                    <SupervisorView />
+                  </ProtectedRoute>
+                }
+              />
 
-            {/* Catch-all fallback */}
-            <Route path="*" element={<Navigate to="/" replace />} />
-          </Routes>
-        </main>
-      </BrowserRouter>
-    </AuthProvider>
+              {/* Catch-all fallback */}
+              <Route path="*" element={<Navigate to="/" replace />} />
+            </Routes>
+          </main>
+        </BrowserRouter>
+      </AuthProvider>
+    </LanguageProvider>
   );
 }

@@ -1,29 +1,83 @@
 import React, { useState } from 'react';
 import { api } from '../api/api.js';
+import { useLanguage } from '../context/LanguageContext.jsx';
 
 const DANGER_SIGNS = {
   antenatal: [
-    { id: 'severe_headache_visual_changes', label: 'Severe headache with visual disturbance / blurring' },
-    { id: 'vaginal_bleeding', label: 'Vaginal bleeding or spotting' },
-    { id: 'convulsions', label: 'Convulsions / loss of consciousness' },
-    { id: 'reduced_fetal_movement', label: 'Marked reduction in fetal movement' },
-    { id: 'high_fever_chills', label: 'High fever with chills' },
+    {
+      id: 'severe_headache_visual_changes',
+      label_en: 'Severe headache with visual disturbance / blurring',
+      label_hi: 'तेज सिरदर्द और आंखों में धुंधलापन (Severe headache with blurred vision)',
+    },
+    {
+      id: 'vaginal_bleeding',
+      label_en: 'Vaginal bleeding or spotting',
+      label_hi: 'रक्तस्राव या धब्बे दिखना (Vaginal bleeding / spotting)',
+    },
+    {
+      id: 'convulsions',
+      label_en: 'Convulsions / loss of consciousness',
+      label_hi: 'दौरे या बेहोशी (Convulsions / Fainting)',
+    },
+    {
+      id: 'reduced_fetal_movement',
+      label_en: 'Marked reduction in fetal movement',
+      label_hi: 'गर्भस्थ शिशु की हलचल में अत्यधिक कमी (Reduced fetal movement)',
+    },
+    {
+      id: 'high_fever_chills',
+      label_en: 'High fever with chills',
+      label_hi: 'कंपकंपी के साथ तेज बुखार (High fever with chills)',
+    },
   ],
   hypertension: [
-    { id: 'chest_pain', label: 'Acute chest pain or pressure' },
-    { id: 'shortness_of_breath', label: 'Shortness of breath / difficulty breathing' },
-    { id: 'sudden_numbness_weakness', label: 'Sudden weakness, facial droop, or limb numbness' },
-    { id: 'severe_dizziness', label: 'Severe persistent dizziness or fainting' },
+    {
+      id: 'chest_pain',
+      label_en: 'Acute chest pain or pressure',
+      label_hi: 'छाती में तेज दर्द या दबाव (Chest pain or pressure)',
+    },
+    {
+      id: 'shortness_of_breath',
+      label_en: 'Shortness of breath / difficulty breathing',
+      label_hi: 'सांस लेने में अत्यधिक कठिनाई (Shortness of breath)',
+    },
+    {
+      id: 'sudden_numbness_weakness',
+      label_en: 'Sudden weakness, facial droop, or limb numbness',
+      label_hi: 'अंगों में अचानक कमजोरी या सुन्नपन (Sudden numbness / weakness)',
+    },
+    {
+      id: 'severe_dizziness',
+      label_en: 'Severe persistent dizziness or fainting',
+      label_hi: 'चक्कर आना या बेहोश होना (Severe dizziness or fainting)',
+    },
   ],
   diabetes: [
-    { id: 'extreme_thirst_confusion', label: 'Extreme thirst accompanied by mental confusion' },
-    { id: 'fruity_breath_odor', label: 'Fruity or acetone breath odor' },
-    { id: 'unhealing_foot_wound', label: 'Unhealing foot ulcer, cut, or discoloration' },
-    { id: 'loss_of_consciousness', label: 'Loss of consciousness / severe hypoglycemic stupor' },
+    {
+      id: 'extreme_thirst_confusion',
+      label_en: 'Extreme thirst accompanied by mental confusion',
+      label_hi: 'अत्यधिक प्यास और मानसिक भ्रम (Extreme thirst with confusion)',
+    },
+    {
+      id: 'fruity_breath_odor',
+      label_en: 'Fruity or acetone breath odor',
+      label_hi: 'सांस से मीठी या एसीटोन जैसी गंध (Fruity breath odor)',
+    },
+    {
+      id: 'unhealing_foot_wound',
+      label_en: 'Unhealing foot ulcer, cut, or discoloration',
+      label_hi: 'पैर पर न भरने वाला घाव या छाला (Unhealing foot ulcer/wound)',
+    },
+    {
+      id: 'loss_of_consciousness',
+      label_en: 'Loss of consciousness / severe hypoglycemic stupor',
+      label_hi: 'बेहोशी / अत्यधिक कम शुगर का दौरा (Severe hypoglycemia)',
+    },
   ],
 };
 
 export default function CheckInForm({ patient, existingCheckInId, onClose, onSuccess }) {
+  const { lang, t } = useLanguage();
   const [channel, setChannel] = useState('in_person');
   const [systolic, setSystolic] = useState('');
   const [diastolic, setDiastolic] = useState('');
@@ -85,7 +139,7 @@ export default function CheckInForm({ patient, existingCheckInId, onClose, onSuc
       <div className="modal-container">
         <div className="modal-header">
           <div>
-            <h3>Record Follow-Up Check-In</h3>
+            <h3>{t('checkin_modal_title')}</h3>
             <span className="modal-subtitle">
               Patient: <strong>{patient.pseudonym}</strong> ({patient.cohort?.toUpperCase()} · {patient.village_or_ward})
             </span>
@@ -99,20 +153,20 @@ export default function CheckInForm({ patient, existingCheckInId, onClose, onSuc
           {/* Channel selector */}
           <div className="form-row">
             <div className="form-group">
-              <label>Interaction Channel</label>
+              <label>{t('interaction_channel')}</label>
               <select value={channel} onChange={(e) => setChannel(e.target.value)}>
-                <option value="in_person">🏠 In-Person (Home / Village Visit)</option>
-                <option value="phone">📞 Phone / Telephonic Check-In</option>
+                <option value="in_person">{t('channel_in_person')}</option>
+                <option value="phone">{t('channel_phone')}</option>
               </select>
             </div>
           </div>
 
           {/* Vitals Section */}
           <div className="form-section">
-            <h4 className="section-heading">Vital Measurements</h4>
+            <h4 className="section-heading">{t('vital_measurements_heading')}</h4>
             <div className="form-grid-3">
               <div className="form-group">
-                <label>Systolic BP (mmHg)</label>
+                <label>{t('bp_systolic')}</label>
                 <input
                   type="number"
                   placeholder="e.g. 120"
@@ -122,7 +176,7 @@ export default function CheckInForm({ patient, existingCheckInId, onClose, onSuc
               </div>
 
               <div className="form-group">
-                <label>Diastolic BP (mmHg)</label>
+                <label>{t('bp_diastolic')}</label>
                 <input
                   type="number"
                   placeholder="e.g. 80"
@@ -132,7 +186,7 @@ export default function CheckInForm({ patient, existingCheckInId, onClose, onSuc
               </div>
 
               <div className="form-group">
-                <label>Heart Rate (bpm)</label>
+                <label>{t('heart_rate')}</label>
                 <input
                   type="number"
                   placeholder="e.g. 72"
@@ -142,7 +196,7 @@ export default function CheckInForm({ patient, existingCheckInId, onClose, onSuc
               </div>
 
               <div className="form-group">
-                <label>Fasting Glucose (mg/dL)</label>
+                <label>{t('fasting_glucose')}</label>
                 <input
                   type="number"
                   placeholder="e.g. 95"
@@ -152,7 +206,7 @@ export default function CheckInForm({ patient, existingCheckInId, onClose, onSuc
               </div>
 
               <div className="form-group">
-                <label>Random Glucose (mg/dL)</label>
+                <label>{t('random_glucose')}</label>
                 <input
                   type="number"
                   placeholder="e.g. 135"
@@ -162,7 +216,7 @@ export default function CheckInForm({ patient, existingCheckInId, onClose, onSuc
               </div>
 
               <div className="form-group">
-                <label>Weight (kg)</label>
+                <label>{t('weight_kg')}</label>
                 <input
                   type="number"
                   step="0.1"
@@ -173,7 +227,7 @@ export default function CheckInForm({ patient, existingCheckInId, onClose, onSuc
               </div>
 
               <div className="form-group">
-                <label>Temperature (°F)</label>
+                <label>{t('temperature_f')}</label>
                 <input
                   type="number"
                   step="0.1"
@@ -188,7 +242,7 @@ export default function CheckInForm({ patient, existingCheckInId, onClose, onSuc
           {/* Danger Signs Checklist */}
           <div className="form-section">
             <h4 className="section-heading">
-              Protocol Danger Signs ({patient.cohort} Cohort Checklist)
+              {t('danger_signs_heading')} ({patient.cohort?.toUpperCase()})
             </h4>
             <div className="danger-signs-checklist">
               {cohortDangerSigns.map((sign) => (
@@ -198,7 +252,7 @@ export default function CheckInForm({ patient, existingCheckInId, onClose, onSuc
                     checked={selectedSymptoms.includes(sign.id)}
                     onChange={() => handleSymptomToggle(sign.id)}
                   />
-                  <span>{sign.label}</span>
+                  <span>{lang === 'hi' ? sign.label_hi : sign.label_en}</span>
                 </label>
               ))}
             </div>
@@ -206,7 +260,7 @@ export default function CheckInForm({ patient, existingCheckInId, onClose, onSuc
 
           {/* Notes */}
           <div className="form-group">
-            <label>Field Observation & Visit Notes</label>
+            <label>{t('field_notes')}</label>
             <textarea
               rows="3"
               placeholder="Record any general patient comments, adherence notes, or caregiver observations..."
@@ -217,10 +271,10 @@ export default function CheckInForm({ patient, existingCheckInId, onClose, onSuc
 
           <div className="modal-actions">
             <button type="button" className="btn btn-secondary" onClick={onClose} disabled={loading}>
-              Cancel
+              {t('cancel_btn')}
             </button>
             <button type="submit" className="btn btn-primary" disabled={loading}>
-              {loading ? 'Evaluating Rules & Saving...' : 'Save & Evaluate Check-In'}
+              {loading ? 'Evaluating Rules & Saving...' : t('save_checkin_btn')}
             </button>
           </div>
         </form>
@@ -228,4 +282,3 @@ export default function CheckInForm({ patient, existingCheckInId, onClose, onSuc
     </div>
   );
 }
-

@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { api } from '../api/api.js';
+import { useLanguage } from '../context/LanguageContext.jsx';
 import FlagCard from '../components/FlagCard.jsx';
 import CheckInForm from './CheckInForm.jsx';
 
 export default function WorkerDashboard() {
+  const { lang, t } = useLanguage();
   const [callList, setCallList] = useState([]);
   const [filter, setFilter] = useState('all');
   const [loading, setLoading] = useState(true);
@@ -85,21 +87,30 @@ export default function WorkerDashboard() {
     dueSoon: callList.filter((p) => p.priorityRank === 4).length,
   };
 
+  const getPriorityLabel = (rank, defaultLabel) => {
+    if (lang === 'hi') {
+      if (rank === 1) return t('priority_clinical');
+      if (rank === 2) return t('priority_r3');
+      if (rank === 3) return t('priority_r2');
+      if (rank === 4) return t('priority_r1');
+      return t('priority_routine');
+    }
+    return defaultLabel;
+  };
+
   return (
     <div className="page-container">
       <div className="page-header">
         <div>
-          <h2>Frontline Health Worker Dashboard</h2>
-          <p className="page-subtitle">
-            Today's Prioritized Morning Follow-Up Call List (Urgency-Ranked)
-          </p>
+          <h2>{t('worker_dash_title')}</h2>
+          <p className="page-subtitle">{t('worker_dash_subtitle')}</p>
         </div>
         <button
           className="btn btn-secondary"
           onClick={() => fetchCallList(filter)}
           disabled={loading}
         >
-          🔄 Refresh List
+          {t('refresh_list')}
         </button>
       </div>
 
@@ -110,48 +121,48 @@ export default function WorkerDashboard() {
       <div className="metrics-row">
         <div className="metric-card metric-total">
           <span className="metric-num">{metrics.total}</span>
-          <span className="metric-label">Assigned Patients</span>
+          <span className="metric-label">{t('metric_assigned')}</span>
         </div>
         <div className="metric-card metric-urgent">
           <span className="metric-num">{metrics.concerning}</span>
-          <span className="metric-label">🚨 Clinical Alerts</span>
+          <span className="metric-label">{t('metric_clinical_alerts')}</span>
         </div>
         <div className="metric-card metric-warning">
           <span className="metric-num">{metrics.overdue}</span>
-          <span className="metric-label">⚠️ Overdue Follow-ups</span>
+          <span className="metric-label">{t('metric_overdue')}</span>
         </div>
         <div className="metric-card metric-info">
           <span className="metric-num">{metrics.dueSoon}</span>
-          <span className="metric-label">📅 Due Soon</span>
+          <span className="metric-label">{t('metric_due_soon')}</span>
         </div>
       </div>
 
       {/* Filter Tabs */}
       <div className="filter-bar">
-        <span className="filter-title">Filter Call List:</span>
+        <span className="filter-title">{t('filter_label')}</span>
         <button
           className={`filter-chip ${filter === 'all' ? 'active' : ''}`}
           onClick={() => setFilter('all')}
         >
-          All Cases ({metrics.total})
+          {t('filter_all')} ({metrics.total})
         </button>
         <button
           className={`filter-chip chip-concerning ${filter === 'concerning' ? 'active' : ''}`}
           onClick={() => setFilter('concerning')}
         >
-          🚨 Concerning Clinical Alerts ({metrics.concerning})
+          {t('filter_concerning')} ({metrics.concerning})
         </button>
         <button
           className={`filter-chip chip-overdue ${filter === 'overdue' ? 'active' : ''}`}
           onClick={() => setFilter('overdue')}
         >
-          ⚠️ Overdue Follow-Ups ({metrics.overdue})
+          {t('filter_overdue')} ({metrics.overdue})
         </button>
         <button
           className={`filter-chip chip-escalated ${filter === 'escalated' ? 'active' : ''}`}
           onClick={() => setFilter('escalated')}
         >
-          ↗ Active Escalations
+          {t('filter_escalated')}
         </button>
       </div>
 
@@ -179,7 +190,7 @@ export default function WorkerDashboard() {
                     <div className="patient-header-line">
                       <span className="patient-id-tag">{patient.pseudonym}</span>
                       <span className={`priority-pill priority-rank-${patient.priorityRank}`}>
-                        {patient.priorityLabel}
+                        {getPriorityLabel(patient.priorityRank, patient.priorityLabel)}
                       </span>
                     </div>
 
@@ -188,7 +199,7 @@ export default function WorkerDashboard() {
                       <span className="meta-tag tag-location">📍 {patient.village_or_ward}</span>
                       <span className="meta-tag tag-age">👤 {patient.age_band}</span>
                       <span className={`consent-badge consent-${patient.consent_status}`}>
-                        {patient.consent_status === 'consented' ? '✓ Consent: YES' : '✕ Consent: DECLINED'}
+                        {patient.consent_status === 'consented' ? t('consent_yes') : t('consent_no')}
                       </span>
                     </div>
                   </div>
@@ -196,15 +207,15 @@ export default function WorkerDashboard() {
                   <div className="patient-schedule-info">
                     {patient.due_date ? (
                       <div>
-                        <span className="due-date-label">Due Date:</span>
+                        <span className="due-date-label">{t('due_date_label')}</span>
                         <strong>{patient.due_date}</strong>
                         {patient.days_overdue > 0 ? (
                           <span className="overdue-tag">
-                            {patient.days_overdue} days overdue
+                            {patient.days_overdue} {t('days_overdue')}
                           </span>
                         ) : (
                           <span className="due-soon-tag">
-                            In {Math.abs(patient.days_overdue)} day(s)
+                            {t('in_days')} {Math.abs(patient.days_overdue)} {t('day_s')}
                           </span>
                         )}
                       </div>
@@ -217,7 +228,7 @@ export default function WorkerDashboard() {
                 {/* Flags list */}
                 {patient.flags && patient.flags.length > 0 && (
                   <div className="card-flags-section">
-                    <span className="flags-header">Transparent Flags Triggered:</span>
+                    <span className="flags-header">{t('flags_triggered_title')}</span>
                     <div className="flags-stack">
                       {patient.flags.map((flag) => (
                         <FlagCard
@@ -235,7 +246,7 @@ export default function WorkerDashboard() {
                 {/* Escalation status banner if active */}
                 {patient.escalation_status && (
                   <div className="escalation-status-banner">
-                    ↗ Escalation Status: <strong>{patient.escalation_status.toUpperCase()}</strong>
+                    ↗ {t('escalation_status_label')} <strong>{patient.escalation_status.toUpperCase()}</strong>
                   </div>
                 )}
 
@@ -245,11 +256,11 @@ export default function WorkerDashboard() {
                     className="btn btn-primary"
                     onClick={() => setSelectedPatientForCheckIn(patient)}
                   >
-                    📝 Record Check-In
+                    {t('record_checkin_btn')}
                   </button>
 
                   <Link to={`/patient/${patient.patient_id}`} className="btn btn-outline">
-                    📊 View Timeline & Consent
+                    {t('view_timeline_btn')}
                   </Link>
                 </div>
               </div>
