@@ -38,16 +38,30 @@ export default function PatientList() {
 
   return (
     <div className="page-container">
-      <div className="page-header">
-        <div>
-          <h2>Patient Registry (Synthetic Cohorts)</h2>
-          <p className="page-subtitle">
-            Complete Registry of Registered Patients across Antenatal, Hypertension, and Diabetes Programs
-          </p>
+      {/* Unified Executive Registry Header */}
+      <div className="dashboard-hero-header">
+        <div className="hero-left">
+          <div className="hero-avatar-wrap">
+            <span className="hero-avatar-emblem">👥</span>
+          </div>
+          <div className="hero-meta">
+            <div className="hero-title-row">
+              <h1 className="hero-title">{lang === 'hi' ? 'मरीज़ रजिस्टर (पंजीकृत नागरिक)' : 'Patient Registry (Cohorts)'}</h1>
+              <span className="hero-role-chip">{lang === 'hi' ? 'सीतापुर PHC' : 'PHC Sitapur'}</span>
+            </div>
+            <p className="hero-subtitle">
+              <span>📍 {lang === 'hi' ? 'गर्भवती, उच्च रक्तचाप व मधुमेह कार्यक्रम' : 'Antenatal, Hypertension & Diabetes Programs'}</span>
+              <span className="hero-sep">•</span>
+              <span>{patients.length} {lang === 'hi' ? 'पंजीकृत मरीज़' : 'Enrolled Patients'}</span>
+            </p>
+          </div>
         </div>
-        <Link to="/worker" className="btn btn-primary">
-          📋 Go to Prioritized Call List
-        </Link>
+
+        <div className="hero-right">
+          <Link to="/worker" className="btn btn-primary" style={{ textDecoration: 'none' }}>
+            📋 {lang === 'hi' ? 'आज की कॉल सूची पर जाएं' : 'Go to Call List'}
+          </Link>
+        </div>
       </div>
 
       {error && <div className="alert alert-error">{error}</div>}

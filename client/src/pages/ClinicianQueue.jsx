@@ -6,7 +6,7 @@ import { getPatientDisplayName, getLocalizedVillage } from '../utils/patientName
 import { speakText, stopSpeech } from '../utils/speechHelper.js';
 
 export default function ClinicianQueue() {
-  const { lang } = useLanguage();
+  const { lang, t } = useLanguage();
   const [queue, setQueue] = useState([]);
   const [statusFilter, setStatusFilter] = useState('all');
   const [loading, setLoading] = useState(true);
@@ -94,57 +94,107 @@ export default function ClinicianQueue() {
 
   return (
     <div className="page-container">
-      <div className="page-header">
-        <div>
-          <h2>🏥 Government Medical Officer Review & Escalation Queue</h2>
-          <p className="page-subtitle">
-            Primary Health Centre (Govt PHC Sitapur) · Dr. Rajesh Sharma, MBBS (Govt Medical Officer)
-          </p>
+      {/* Unified Executive Doctor Dashboard Header */}
+      <div className="dashboard-hero-header">
+        <div className="hero-left">
+          <div className="hero-avatar-wrap">
+            <span className="hero-avatar-emblem">🩺</span>
+          </div>
+          <div className="hero-meta">
+            <div className="hero-title-row">
+              <h1 className="hero-title">{t('doctor_greeting')}</h1>
+              <span className="hero-role-chip">{t('doctor_role_tag')}</span>
+            </div>
+            <p className="hero-subtitle">
+              <span>📍 {t('doctor_location')}</span>
+              <span className="hero-sep">•</span>
+              <span>{t('doctor_sub')}</span>
+            </p>
+          </div>
         </div>
-        <button className="btn btn-secondary" onClick={() => fetchQueue(statusFilter)} disabled={loading}>
-          🔄 Refresh Queue
-        </button>
+
+        <div className="hero-right">
+          <button
+            type="button"
+            className="btn-refresh-clean"
+            onClick={() => fetchQueue(statusFilter)}
+            disabled={loading}
+            title={lang === 'hi' ? 'कतार रीफ़्रेश करें' : 'Refresh queue'}
+          >
+            🔄
+          </button>
+        </div>
       </div>
 
       {toastMessage && <div className="alert alert-success">{toastMessage}</div>}
       {error && <div className="alert alert-error">{error}</div>}
 
-      {/* Metrics Row */}
-      <div className="metrics-row">
-        <div className="metric-card metric-urgent">
-          <span className="metric-num">{pendingCount}</span>
-          <span className="metric-label">Pending Medical Review</span>
-        </div>
-        <div className="metric-card metric-warning">
-          <span className="metric-num">{reviewedCount}</span>
-          <span className="metric-label">Active / Reviewed Cases</span>
-        </div>
-        <div className="metric-card metric-total">
-          <span className="metric-num">{queue.length}</span>
-          <span className="metric-label">Total Escalations in Queue</span>
-        </div>
-      </div>
-
-      {/* Filter Tabs */}
-      <div className="filter-bar">
-        <span className="filter-title">Filter Queue:</span>
+      {/* Dynamic Clinical Triage KPI Cards */}
+      <div className="triage-kpi-grid">
         <button
-          className={`filter-chip ${statusFilter === 'all' ? 'active' : ''}`}
+          type="button"
+          className={`triage-kpi-card kpi-danger ${statusFilter === 'pending' ? 'is-active' : ''}`}
+          onClick={() => setStatusFilter(statusFilter === 'pending' ? 'all' : 'pending')}
+        >
+          <div className="kpi-top">
+            <span className="kpi-icon-wrap icon-danger">⏳</span>
+            <span className="kpi-value">{pendingCount}</span>
+          </div>
+          <div className="kpi-body">
+            <strong className="kpi-label">{t('doctor_awaiting')}</strong>
+            <p className="kpi-subtext">
+              {lang === 'hi' ? 'आशा कार्यकर्ताओं द्वारा भेजे गए गंभीर जोखिम मामले' : 'High-risk flags awaiting clinician decision'}
+            </p>
+          </div>
+          <div className="kpi-footer">
+            <span className="kpi-status-tag">
+              {statusFilter === 'pending' ? (lang === 'hi' ? '✓ चयनित' : '✓ Filter Active') : (lang === 'hi' ? 'मामले देखें →' : 'View Cases →')}
+            </span>
+          </div>
+        </button>
+
+        <button
+          type="button"
+          className={`triage-kpi-card kpi-warning ${statusFilter === 'reviewed' ? 'is-active' : ''}`}
+          onClick={() => setStatusFilter(statusFilter === 'reviewed' ? 'all' : 'reviewed')}
+        >
+          <div className="kpi-top">
+            <span className="kpi-icon-wrap icon-warning">🩺</span>
+            <span className="kpi-value">{reviewedCount}</span>
+          </div>
+          <div className="kpi-body">
+            <strong className="kpi-label">{t('doctor_reviewed')}</strong>
+            <p className="kpi-subtext">
+              {lang === 'hi' ? 'जिन मामलों पर डॉक्टर द्वारा परामर्श दर्ज किया गया है' : 'Decisions logged and scheduled in clinic'}
+            </p>
+          </div>
+          <div className="kpi-footer">
+            <span className="kpi-status-tag">
+              {statusFilter === 'reviewed' ? (lang === 'hi' ? '✓ चयनित' : '✓ Filter Active') : (lang === 'hi' ? 'समीक्षित देखें →' : 'View Reviewed →')}
+            </span>
+          </div>
+        </button>
+
+        <button
+          type="button"
+          className={`triage-kpi-card kpi-normal ${statusFilter === 'all' ? 'is-active' : ''}`}
           onClick={() => setStatusFilter('all')}
         >
-          All Cases ({queue.length})
-        </button>
-        <button
-          className={`filter-chip chip-concerning ${statusFilter === 'pending' ? 'active' : ''}`}
-          onClick={() => setStatusFilter('pending')}
-        >
-          ⏳ Awaiting Review ({pendingCount})
-        </button>
-        <button
-          className={`filter-chip chip-escalated ${statusFilter === 'reviewed' ? 'active' : ''}`}
-          onClick={() => setStatusFilter('reviewed')}
-        >
-          ✓ Reviewed / In-Progress ({reviewedCount})
+          <div className="kpi-top">
+            <span className="kpi-icon-wrap icon-normal">📋</span>
+            <span className="kpi-value">{queue.length}</span>
+          </div>
+          <div className="kpi-body">
+            <strong className="kpi-label">{t('doctor_total')}</strong>
+            <p className="kpi-subtext">
+              {lang === 'hi' ? 'सभी प्राथमिक स्वास्थ्य केंद्र रेफरल रिकॉर्ड' : 'Total referrals logged across all cohorts'}
+            </p>
+          </div>
+          <div className="kpi-footer">
+            <span className="kpi-status-tag">
+              {statusFilter === 'all' ? (lang === 'hi' ? '✓ सभी दिख रहे हैं' : '✓ Showing All') : (lang === 'hi' ? 'सभी देखें →' : 'View All →')}
+            </span>
+          </div>
         </button>
       </div>
 

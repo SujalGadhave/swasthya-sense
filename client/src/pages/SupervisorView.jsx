@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { api } from '../api/api.js';
+import { useLanguage } from '../context/LanguageContext.jsx';
 
 export default function SupervisorView() {
+  const { lang, t } = useLanguage();
   const [activeTab, setActiveTab] = useState('overview'); // overview | schedules | audit | messages
   const [schedules, setSchedules] = useState([]);
   const [auditRecords, setAuditRecords] = useState([]);
@@ -184,19 +186,42 @@ export default function SupervisorView() {
 
   return (
     <div className="page-container">
-      <div className="page-header">
-        <div>
-          <h2>Supervisor Operations & Audit Management</h2>
-          <p className="page-subtitle">
-            Facility In-Charge Controls: Cohort Protocols, Append-Only Audit Trail & Message Simulation
-          </p>
+      {/* Unified Executive Supervisor Dashboard Header */}
+      <div className="dashboard-hero-header">
+        <div className="hero-left">
+          <div className="hero-avatar-wrap">
+            <span className="hero-avatar-emblem">📋</span>
+          </div>
+          <div className="hero-meta">
+            <div className="hero-title-row">
+              <h1 className="hero-title">{t('supervisor_greeting')}</h1>
+              <span className="hero-role-chip">{t('supervisor_role_tag')}</span>
+            </div>
+            <p className="hero-subtitle">
+              <span>📍 {t('supervisor_location')}</span>
+              <span className="hero-sep">•</span>
+              <span>{t('supervisor_sub')}</span>
+            </p>
+          </div>
         </div>
-        <div className="header-actions-group">
-          <button className="btn btn-primary btn-export-csv" onClick={handleExportNHMReport} title="Export NHM compliance and audit trail as CSV spreadsheet">
-            📥 Export NHM Compliance Report (CSV)
+
+        <div className="hero-right">
+          <button
+            type="button"
+            className="btn btn-primary btn-export-csv"
+            onClick={handleExportNHMReport}
+            title="Export NHM compliance and audit trail as CSV spreadsheet"
+          >
+            {t('btn_export_nhm')}
           </button>
-          <button className="btn btn-secondary" onClick={loadData} disabled={loading}>
-            🔄 Refresh Operations Data
+          <button
+            type="button"
+            className="btn-refresh-clean"
+            onClick={loadData}
+            disabled={loading}
+            title={lang === 'hi' ? 'डेटा रीफ़्रेश करें' : 'Refresh Operations Data'}
+          >
+            🔄
           </button>
         </div>
       </div>
@@ -210,25 +235,25 @@ export default function SupervisorView() {
           className={`tab-btn ${activeTab === 'overview' ? 'active' : ''}`}
           onClick={() => setActiveTab('overview')}
         >
-          📊 Facility Overview & Metrics
+          {t('tab_overview')}
         </button>
         <button
           className={`tab-btn ${activeTab === 'schedules' ? 'active' : ''}`}
           onClick={() => setActiveTab('schedules')}
         >
-          ⚙️ Cohort Follow-Up Schedules ({schedules.length})
+          {t('tab_schedules')} ({schedules.length})
         </button>
         <button
           className={`tab-btn ${activeTab === 'audit' ? 'active' : ''}`}
           onClick={() => setActiveTab('audit')}
         >
-          📜 Append-Only Audit Log ({auditTotal})
+          {t('tab_audit')} ({auditTotal})
         </button>
         <button
           className={`tab-btn ${activeTab === 'messages' ? 'active' : ''}`}
           onClick={() => setActiveTab('messages')}
         >
-          💬 Simulated Messaging ({messages.length})
+          {t('tab_messages')} ({messages.length})
         </button>
       </div>
 

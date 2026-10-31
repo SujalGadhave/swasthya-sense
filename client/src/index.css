@@ -2397,6 +2397,13 @@ body {
   display: flex;
   align-items: center;
   gap: 0.85rem;
+  min-width: 0;
+  flex: 1 1 360px;
+}
+
+.hero-meta {
+  min-width: 0;
+  flex: 1;
 }
 
 .hero-avatar-wrap {
@@ -2425,14 +2432,18 @@ body {
   display: flex;
   align-items: center;
   gap: 0.5rem;
+  flex-wrap: wrap;
+  min-width: 0;
 }
 
 .hero-title {
-  font-size: 1.22rem;
+  font-size: clamp(1.1rem, 2.2vw, 1.35rem);
   font-weight: 800;
   color: var(--color-text-main);
   letter-spacing: -0.01em;
   margin: 0;
+  line-height: 1.25;
+  word-break: break-word;
 }
 
 .hero-role-chip {
@@ -2443,6 +2454,7 @@ body {
   padding: 0.15rem 0.5rem;
   border-radius: 9999px;
   border: 1px solid #a7f3d0;
+  white-space: nowrap;
 }
 
 [data-theme="dark"] .hero-role-chip {
@@ -2459,6 +2471,7 @@ body {
   align-items: center;
   gap: 0.45rem;
   flex-wrap: wrap;
+  word-break: break-word;
 }
 
 .hero-sep {
@@ -2470,6 +2483,7 @@ body {
   align-items: center;
   gap: 0.65rem;
   flex-wrap: wrap;
+  flex-shrink: 0;
 }
 
 .hero-sync-pill {
@@ -4270,6 +4284,29 @@ body {
   }
 }
 
+/* COMPACT DESKTOP & LAPTOP VIEWPORTS (992px - 1200px) */
+@media (max-width: 1200px) {
+  .brand-subtitle {
+    display: none;
+  }
+
+  .role-tab-text {
+    display: none;
+  }
+
+  .user-name-label {
+    max-width: 75px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .navbar {
+    padding: 0.65rem 1.25rem;
+    gap: 1rem;
+  }
+}
+
 /* TABLET & MOBILE VIEWPORT OPTIMIZATIONS (< 992px) */
 @media (max-width: 991px) {
   body {
@@ -4302,38 +4339,65 @@ body {
   }
 
   .navbar-actions {
-    gap: 0.45rem;
-    flex-wrap: nowrap;
+    gap: 0.4rem;
+    flex-wrap: wrap;
   }
 
-  .persona-switcher {
-    padding: 0.15rem 0.35rem;
+  .segmented-role-switch {
+    padding: 2px;
   }
 
-  .persona-label {
-    display: none;
-  }
-
-  .persona-btn {
-    padding: 0.2rem 0.4rem;
+  .role-tab-btn {
+    padding: 0.25rem 0.45rem;
     font-size: 0.72rem;
   }
 
-  .user-badge {
+  .role-tab-text {
+    display: none;
+  }
+
+  .user-name-label {
     display: none;
   }
 
   .lang-pill-btn {
-    padding: 0.25rem 0.55rem;
-    font-size: 0.75rem;
-  }
-
-  .theme-toggle-label {
-    display: none;
+    padding: 0.25rem 0.5rem;
+    font-size: 0.72rem;
   }
 
   .theme-toggle-btn {
-    padding: 0.3rem 0.5rem;
+    width: 30px;
+    height: 30px;
+  }
+
+  /* Dynamic Dashboard Hero Bar on Tablets */
+  .dashboard-hero-header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.85rem;
+    padding: 1rem 1.15rem;
+  }
+
+  .hero-left {
+    width: 100%;
+  }
+
+  .hero-right {
+    width: 100%;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+
+  .view-mode-pill-toggle {
+    flex: 1;
+    justify-content: center;
+  }
+
+  /* Dynamic Auto-Adjusting KPI Grid on Tablets */
+  .triage-kpi-grid {
+    grid-template-columns: 1fr;
+    gap: 0.85rem;
   }
 
   .page-header {
@@ -4437,6 +4501,27 @@ body {
     grid-column: span 2;
     min-height: 48px;
     justify-content: center;
+  }
+
+  /* Frontline Dashboard Hero Header on Mobile */
+  .dashboard-hero-header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.85rem;
+    padding: 0.95rem 1.1rem;
+    border-radius: 12px;
+  }
+
+  .hero-title {
+    font-size: 1.15rem;
+  }
+
+  .triage-kpi-card {
+    padding: 1rem 1.15rem;
+  }
+
+  .kpi-value {
+    font-size: 2rem;
   }
 
   /* Frontline ASHA Welcome Banner */
