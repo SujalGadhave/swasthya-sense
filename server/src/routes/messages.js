@@ -12,7 +12,7 @@ const router = express.Router();
 router.get('/', authenticateToken, async (req, res) => {
   try {
     const pool = getPool();
-    const { status, channel } = req.query;
+    const { status, channel, patient_id } = req.query;
 
     let query = `
       SELECT 
@@ -41,6 +41,10 @@ router.get('/', authenticateToken, async (req, res) => {
     if (channel) {
       query += ' AND m.channel = ?';
       params.push(channel);
+    }
+    if (patient_id) {
+      query += ' AND m.patient_id = ?';
+      params.push(patient_id);
     }
 
     query += ' ORDER BY m.created_at DESC';

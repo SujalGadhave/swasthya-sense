@@ -4,6 +4,7 @@ import { api } from '../api/api.js';
 import { useLanguage } from '../context/LanguageContext.jsx';
 import FlagCard from '../components/FlagCard.jsx';
 import CheckInForm from './CheckInForm.jsx';
+import SimulatedMessageModal from '../components/SimulatedMessageModal.jsx';
 
 export default function WorkerDashboard() {
   const { lang, t } = useLanguage();
@@ -12,6 +13,7 @@ export default function WorkerDashboard() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [selectedPatientForCheckIn, setSelectedPatientForCheckIn] = useState(null);
+  const [selectedPatientForMessage, setSelectedPatientForMessage] = useState(null);
   const [escalatingFlag, setEscalatingFlag] = useState(null);
   const [escalateNote, setEscalateNote] = useState('');
   const [submittingEscalation, setSubmittingEscalation] = useState(false);
@@ -259,6 +261,15 @@ export default function WorkerDashboard() {
                     {t('record_checkin_btn')}
                   </button>
 
+                  <button
+                    type="button"
+                    className="btn btn-secondary btn-msg-preview"
+                    onClick={() => setSelectedPatientForMessage(patient)}
+                    title="Preview patient SMS / WhatsApp follow-up reminder"
+                  >
+                    💬 {lang === 'hi' ? 'व्हाट्सएप प्रीव्यू' : 'WhatsApp Preview'}
+                  </button>
+
                   <Link to={`/patient/${patient.patient_id}`} className="btn btn-outline">
                     {t('view_timeline_btn')}
                   </Link>
@@ -338,6 +349,14 @@ export default function WorkerDashboard() {
             </form>
           </div>
         </div>
+      )}
+
+      {/* Simulated Patient Message Preview Modal */}
+      {selectedPatientForMessage && (
+        <SimulatedMessageModal
+          patient={selectedPatientForMessage}
+          onClose={() => setSelectedPatientForMessage(null)}
+        />
       )}
     </div>
   );
