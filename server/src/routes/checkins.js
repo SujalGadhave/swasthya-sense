@@ -152,18 +152,21 @@ router.post('/', authenticateToken, async (req, res) => {
       [nextCheckInId, patient_id, req.user.id, nextDueDateStr, channel]
     );
 
-    // 8. Log CHECKIN_RECORDED to audit_log
+    // 8. Log CHECKIN_RECORDED (or CHECKIN_OFFLINE_SYNCED) to audit_log
+    const isOfflineSync = Boolean(req.body.is_offline_sync);
     await logAudit(conn, {
       userId: req.user.id,
       role: req.user.role,
-      action: 'CHECKIN_RECORDED',
+      action: isOfflineSync ? 'CHECKIN_OFFLINE_SYNCED' : 'CHECKIN_RECORDED',
       entityType: 'check_in',
       entityId: checkInId,
       metadata: {
         patientId: patient_id,
         flagsCount: insertedFlags.length,
         flagsGenerated: insertedFlags.map(f => f.rule_id),
-        nextDueDate: nextDueDateStr
+        nextDueDate: nextDueDateStr,
+        offlineSync: isOfflineSync,
+        offlineQueuedAt: req.body.offline_queued_at || null
       }
     });
 

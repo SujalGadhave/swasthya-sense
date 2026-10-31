@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { api } from '../api/api.js';
 import { useLanguage } from '../context/LanguageContext.jsx';
+import { useOffline } from '../context/OfflineContext.jsx';
 
 const DANGER_SIGNS = {
   antenatal: [
@@ -78,6 +79,7 @@ const DANGER_SIGNS = {
 
 export default function CheckInForm({ patient, existingCheckInId, onClose, onSuccess }) {
   const { lang, t } = useLanguage();
+  const { isOffline, queueCheckIn } = useOffline();
   const [channel, setChannel] = useState('in_person');
   const [systolic, setSystolic] = useState('');
   const [diastolic, setDiastolic] = useState('');
@@ -123,6 +125,14 @@ export default function CheckInForm({ patient, existingCheckInId, onClose, onSuc
         notes,
       };
 
+      if (isOffline) {
+        const offlineResult = queueCheckIn(patient, payload);
+        if (onSuccess) {
+          onSuccess(offlineResult);
+        }
+        return;
+      }
+
       const result = await api.checkins.submit(payload);
       if (onSuccess) {
         onSuccess(result);
@@ -146,6 +156,15 @@ export default function CheckInForm({ patient, existingCheckInId, onClose, onSuc
           </div>
           <button className="btn-close" onClick={onClose}>✕</button>
         </div>
+
+        {isOffline && (
+          <div className="offline-form-notice">
+            📡 <strong>{lang === 'hi' ? 'ऑफ़लाइन मोड सक्रिय' : 'Offline Mode Active'}:</strong>{' '}
+            {lang === 'hi'
+              ? 'यह चेक-इन डिवाइस पर सुरक्षित रूप से सहेजा जाएगा और इंटरनेट कनेक्टिविटी बहाल होने पर PHC सर्वर के साथ सिंक हो जाएगा।'
+              : 'This check-in will be saved locally on this frontline device and queued for automatic sync when network is restored.'}
+          </div>
+        )}
 
         {error && <div className="alert alert-error">{error}</div>}
 

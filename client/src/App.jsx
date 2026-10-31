@@ -2,6 +2,7 @@ import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext.jsx';
 import { LanguageProvider } from './context/LanguageContext.jsx';
+import { OfflineProvider } from './context/OfflineContext.jsx';
 import NavBar from './components/NavBar.jsx';
 
 import Login from './pages/Login.jsx';
@@ -61,9 +62,10 @@ export default function App() {
   return (
     <LanguageProvider>
       <AuthProvider>
-        <BrowserRouter>
-          <NavBar />
-          <main>
+        <OfflineProvider>
+          <BrowserRouter>
+            <NavBar />
+            <main>
             <Routes>
               <Route path="/login" element={<Login />} />
               <Route path="/" element={<HomeRedirect />} />
@@ -135,6 +137,7 @@ export default function App() {
             </Routes>
           </main>
         </BrowserRouter>
+        </OfflineProvider>
       </AuthProvider>
     </LanguageProvider>
   );

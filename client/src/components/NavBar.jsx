@@ -2,10 +2,12 @@ import React from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext.jsx';
 import { useLanguage } from '../context/LanguageContext.jsx';
+import { useOffline } from '../context/OfflineContext.jsx';
 
 export default function NavBar() {
   const { user, logout, login } = useAuth();
   const { lang, toggleLang, t } = useLanguage();
+  const { isOffline, toggleOffline, queueCount } = useOffline();
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -81,6 +83,24 @@ export default function NavBar() {
         )}
 
         <div className="navbar-actions">
+          {/* Offline / Online Simulated Network Toggle */}
+          <button
+            type="button"
+            className={`network-toggle-btn ${isOffline ? 'btn-net-offline' : 'btn-net-online'}`}
+            onClick={toggleOffline}
+            title={
+              isOffline
+                ? 'Simulated Offline Mode Active. Click to switch Online & sync'
+                : 'Network Online. Click to simulate rural offline field visit'
+            }
+          >
+            {isOffline ? (
+              <span>📡 <strong className="net-status">{lang === 'hi' ? 'ऑफ़लाइन' : 'Offline'} ({queueCount})</strong></span>
+            ) : (
+              <span>🟢 <span className="net-status">{lang === 'hi' ? 'ऑनलाइन' : 'Online'}</span></span>
+            )}
+          </button>
+
           {/* Language Toggle Button */}
           <button
             type="button"

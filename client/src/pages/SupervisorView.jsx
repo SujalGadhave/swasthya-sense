@@ -79,6 +79,109 @@ export default function SupervisorView() {
   const sentCount = messages.filter((m) => m.status === 'simulated_sent').length;
   const suppressedCount = messages.filter((m) => m.status === 'failed_no_consent').length;
 
+  const handleExportNHMReport = async () => {
+    try {
+      showToast('Generating NHM Compliance & Audit CSV report...');
+      const auditRes = await api.audit.getAll('limit=500');
+      const allAudit = auditRes.records || auditRecords;
+      const allMessages = messages;
+
+      // Build CSV
+      const rows = [];
+      rows.push(['NATIONAL HEALTH MISSION (NHM) - PRIMARY HEALTH CARE COMPLIANCE & AUDIT REPORT']);
+      rows.push(['System', 'Swasthya Sense - Privacy-Preserving Early Warning & Follow-up Prototype']);
+      rows.push(['Generated At', new Date().toLocaleString()]);
+      rows.push(['Facility', 'Sitapur PHC / Sub-Centre Ward 3']);
+      rows.push(['Total Audit Entries', allAudit.length]);
+      rows.push(['Total Simulated Dispatches', allMessages.length]);
+      rows.push(['Consented Dispatches', sentCount]);
+      rows.push(['Autonomy Suppressed Dispatches', suppressedCount]);
+      rows.push([]);
+
+      // Section 1: Protocols
+      rows.push(['--- ACTIVE COHORT PROTOCOLS ---']);
+      rows.push(['Cohort', 'Interval (Days)', 'Grace Period (Days)', 'Reminder Lead Time (Days)', 'Protocol Version']);
+      schedules.forEach((s) => {
+        rows.push([s.cohort.toUpperCase(), s.interval_days, s.grace_period_days, s.reminder_lead_time_days, `v${s.version}`]);
+      });
+      rows.push([]);
+
+      // Section 2: Append-Only Audit Trail
+      rows.push(['--- APPEND-ONLY AUDIT TRAIL ---']);
+      rows.push([
+        'Log ID',
+        'Timestamp (UTC)',
+        'Local Timestamp',
+        'User Full Name',
+        'User Role',
+        'Action Code',
+        'Target Entity',
+        'Entity ID',
+        'Metadata Details'
+      ]);
+
+      allAudit.forEach((r) => {
+        const metaStr = typeof r.metadata === 'object' ? JSON.stringify(r.metadata).replace(/"/g, '""') : (r.metadata || '');
+        rows.push([
+          r.id,
+          r.created_at,
+          new Date(r.created_at).toLocaleString(),
+          `"${(r.user_full_name || 'System').replace(/"/g, '""')}"`,
+          r.user_role || 'system',
+          r.action,
+          r.entity_type,
+          r.entity_id || '',
+          `"${metaStr}"`
+        ]);
+      });
+
+      rows.push([]);
+
+      // Section 3: Messages Simulation & Consent Safeguard
+      rows.push(['--- SIMULATED REMINDER DISPATCH & AUTONOMY SAFEGUARD LOG ---']);
+      rows.push([
+        'Message ID',
+        'Created At',
+        'Patient ID',
+        'Patient Pseudonym',
+        'Cohort',
+        'Channel',
+        'Dispatch Status',
+        'Safe Reminder Text'
+      ]);
+
+      allMessages.forEach((m) => {
+        rows.push([
+          m.id,
+          m.created_at,
+          m.patient_id,
+          `"${(m.patient_pseudonym || '').replace(/"/g, '""')}"`,
+          m.cohort || '',
+          m.channel || 'whatsapp',
+          m.status,
+          `"${(m.message_text || '').replace(/"/g, '""')}"`
+        ]);
+      });
+
+      const csvContent = '\uFEFF' + rows.map((r) => r.join(',')).join('\r\n');
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      const todayDate = new Date().toISOString().split('T')[0];
+      link.setAttribute('href', url);
+      link.setAttribute('download', `swasthya_sense_nhm_audit_report_${todayDate}.csv`);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+
+      showToast('📥 NHM Compliance CSV Report successfully downloaded!');
+    } catch (err) {
+      console.error('CSV Export Error:', err);
+      alert(`Export failed: ${err.message}`);
+    }
+  };
+
   return (
     <div className="page-container">
       <div className="page-header">
@@ -88,9 +191,14 @@ export default function SupervisorView() {
             Facility In-Charge Controls: Cohort Protocols, Append-Only Audit Trail & Message Simulation
           </p>
         </div>
-        <button className="btn btn-secondary" onClick={loadData} disabled={loading}>
-          🔄 Refresh Operations Data
-        </button>
+        <div className="header-actions-group">
+          <button className="btn btn-primary btn-export-csv" onClick={handleExportNHMReport} title="Export NHM compliance and audit trail as CSV spreadsheet">
+            📥 Export NHM Compliance Report (CSV)
+          </button>
+          <button className="btn btn-secondary" onClick={loadData} disabled={loading}>
+            🔄 Refresh Operations Data
+          </button>
+        </div>
       </div>
 
       {toastMessage && <div className="alert alert-success">{toastMessage}</div>}

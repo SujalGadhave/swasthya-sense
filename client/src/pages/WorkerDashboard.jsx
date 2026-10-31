@@ -2,12 +2,22 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { api } from '../api/api.js';
 import { useLanguage } from '../context/LanguageContext.jsx';
+import { useOffline } from '../context/OfflineContext.jsx';
 import FlagCard from '../components/FlagCard.jsx';
 import CheckInForm from './CheckInForm.jsx';
 import SimulatedMessageModal from '../components/SimulatedMessageModal.jsx';
 
 export default function WorkerDashboard() {
   const { lang, t } = useLanguage();
+  const {
+    isOffline,
+    toggleOffline,
+    queueCount,
+    syncQueue,
+    syncing,
+    syncStatus,
+    clearSyncStatus,
+  } = useOffline();
   const [callList, setCallList] = useState([]);
   const [filter, setFilter] = useState('all');
   const [loading, setLoading] = useState(true);
@@ -43,9 +53,17 @@ export default function WorkerDashboard() {
 
   const handleCheckInSuccess = (result) => {
     setSelectedPatientForCheckIn(null);
-    const flagCount = result.flags ? result.flags.length : 0;
+    if (result?.offline) {
+      showToast(
+        lang === 'hi'
+          ? 'चेक-इन ऑफ़लाइन स्थानीय रूप से सहेजा गया। नेटवर्क चालू होने पर सिंक करें।'
+          : 'Check-in saved locally on frontline device (Offline Queue). Ready to sync.'
+      );
+      return;
+    }
+    const flagCount = result?.flags ? result.flags.length : 0;
     showToast(
-      `Check-in recorded successfully! ${flagCount} flag(s) generated. Next follow-up scheduled for ${result.nextDueDate}.`
+      `Check-in recorded successfully! ${flagCount} flag(s) generated. Next follow-up scheduled for ${result?.nextDueDate}.`
     );
     fetchCallList(filter);
   };
@@ -118,6 +136,66 @@ export default function WorkerDashboard() {
 
       {toastMessage && <div className="alert alert-success">{toastMessage}</div>}
       {error && <div className="alert alert-error">{error}</div>}
+
+      {/* Frontline Offline Sync Status Banner */}
+      {(isOffline || queueCount > 0) && (
+        <div className={`offline-sync-card ${isOffline ? 'mode-offline' : 'mode-queued'}`}>
+          <div className="offline-card-left">
+            <span className="offline-icon">📡</span>
+            <div className="offline-text-block">
+              <strong>
+                {isOffline
+                  ? (lang === 'hi' ? 'फ़ील्ड विज़िट ऑफ़लाइन मोड सक्रिय' : 'Field Visit Offline Mode Active')
+                  : (lang === 'hi' ? 'स्थानीय ऑफ़लाइन कतार' : 'Frontline Device Offline Queue')}
+              </strong>
+              <p>
+                {queueCount > 0
+                  ? (lang === 'hi'
+                      ? `${queueCount} मरीज़ चेक-इन स्थानीय डिवाइस में कतारबद्ध हैं। PHC सर्वर पर अपलोड करने के लिए सिंक दबाएं।`
+                      : `${queueCount} check-in(s) queued locally on this device. Click sync to upload to PHC server.`)
+                  : (lang === 'hi'
+                      ? 'कोई इंटरनेट आवश्यक नहीं है। रिकॉर्ड किए गए चेक-इन स्थानीय रूप से सहेजे जाएंगे।'
+                      : 'No active connection needed. Recorded check-ins will be safely cached locally.')}
+              </p>
+            </div>
+          </div>
+          <div className="offline-card-actions">
+            {queueCount > 0 && (
+              <button
+                type="button"
+                className="btn btn-primary btn-sync-now"
+                onClick={async () => {
+                  const res = await syncQueue();
+                  if (res?.syncedCount > 0) {
+                    fetchCallList(filter);
+                  }
+                }}
+                disabled={syncing}
+              >
+                {syncing
+                  ? (lang === 'hi' ? 'सिंक हो रहा है...' : 'Syncing...')
+                  : (lang === 'hi' ? `🔄 अभी सिंक करें (${queueCount})` : `🔄 Sync Now (${queueCount})`)}
+              </button>
+            )}
+            <button
+              type="button"
+              className="btn btn-outline btn-toggle-net"
+              onClick={toggleOffline}
+            >
+              {isOffline
+                ? (lang === 'hi' ? 'ऑनलाइन जाएं' : 'Switch Online')
+                : (lang === 'hi' ? 'ऑफ़लाइन जाएं' : 'Switch Offline')}
+            </button>
+          </div>
+        </div>
+      )}
+
+      {syncStatus && (
+        <div className={`alert ${syncStatus.type === 'success' ? 'alert-success' : 'alert-error'} sync-status-alert`}>
+          <span>{syncStatus.message}</span>
+          <button className="btn-close-sm" onClick={clearSyncStatus}>✕</button>
+        </div>
+      )}
 
       {/* Metrics Row */}
       <div className="metrics-row">
