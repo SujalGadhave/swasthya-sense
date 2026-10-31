@@ -1,0 +1,105 @@
+{
+  "version": 1,
+  "disclaimer": "Illustrative, requires clinician approval. Prototype only — never gives medical diagnosis or prescribing advice.",
+  "rules": [
+    {
+      "id": "R1",
+      "type": "reminder",
+      "severity": "info",
+      "description": "Visit due soon (within reminder lead time)",
+      "explanationTemplate": "Visit due soon in {daysUntilDue} day(s) on {dueDate}. Scheduled for routine follow-up."
+    },
+    {
+      "id": "R2",
+      "type": "reminder",
+      "severity": "warning",
+      "description": "Check-in overdue beyond grace period",
+      "explanationTemplate": "Check-in overdue by {daysOverdue} day(s) (exceeded grace period of {gracePeriod} days). Contact patient for follow-up."
+    },
+    {
+      "id": "R3",
+      "type": "reminder",
+      "severity": "urgent",
+      "description": "Repeated missed follow-up / persistent non-attendance",
+      "explanationTemplate": "Repeated missed follow-up: {missedReason}. Flagged for supervisor review and outreach coordination."
+    },
+    {
+      "id": "R4",
+      "type": "clinical",
+      "severity": "urgent",
+      "description": "Blood pressure elevated above cohort threshold",
+      "thresholds": {
+        "systolic": 140,
+        "diastolic": 90
+      },
+      "explanationTemplate": "BP {systolic}/{diastolic} mmHg is at or above configured threshold of {thresholdSystolic}/{thresholdDiastolic} mmHg. Flagged for clinician review."
+    },
+    {
+      "id": "R5",
+      "type": "clinical",
+      "severity": "warning",
+      "description": "Rising blood pressure trend across consecutive readings",
+      "thresholds": {
+        "consecutiveReadings": 3
+      },
+      "explanationTemplate": "Systolic blood pressure rose consistently across the last 3 check-ins ({readings}). Flagged for clinician review."
+    },
+    {
+      "id": "R6",
+      "type": "clinical",
+      "severity": "urgent",
+      "description": "Danger-sign symptom reported",
+      "dangerSigns": {
+        "antenatal": [
+          "severe_headache_visual_changes",
+          "vaginal_bleeding",
+          "convulsions",
+          "reduced_fetal_movement",
+          "high_fever_chills"
+        ],
+        "hypertension": [
+          "chest_pain",
+          "shortness_of_breath",
+          "sudden_numbness_weakness",
+          "severe_dizziness"
+        ],
+        "diabetes": [
+          "extreme_thirst_confusion",
+          "fruity_breath_odor",
+          "unhealing_foot_wound",
+          "loss_of_consciousness"
+        ]
+      },
+      "explanationTemplate": "Danger-sign symptom reported: '{symptomName}'. Flagged for clinician review."
+    },
+    {
+      "id": "R7",
+      "type": "clinical",
+      "severity": "warning",
+      "description": "Physiological value outside plausible range (data quality check)",
+      "plausibleRanges": {
+        "systolic": { "min": 60, "max": 260 },
+        "diastolic": { "min": 40, "max": 160 },
+        "fastingGlucose": { "min": 40, "max": 600 },
+        "randomGlucose": { "min": 40, "max": 600 },
+        "heartRate": { "min": 35, "max": 220 },
+        "weightKg": { "min": 25, "max": 250 },
+        "temperatureF": { "min": 92.0, "max": 108.0 }
+      },
+      "explanationTemplate": "Recorded value '{metric}' of {value} is outside physiologically plausible range ({min} - {max}). Possible data-entry error; flagged for review and re-check."
+    },
+    {
+      "id": "R8",
+      "type": "clinical",
+      "severity": "urgent",
+      "description": "Blood glucose out of target bounds for diabetes cohort",
+      "thresholds": {
+        "fastingMin": 70,
+        "fastingMax": 140,
+        "randomMin": 70,
+        "randomMax": 200
+      },
+      "explanationTemplate": "Blood glucose {metric} of {value} mg/dL is outside target limit ({min} - {max} mg/dL). Flagged for clinician review."
+    }
+  ]
+}
