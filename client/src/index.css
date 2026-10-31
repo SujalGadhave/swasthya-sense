@@ -2269,3 +2269,681 @@ body {
   margin-bottom: 0.2rem;
   word-break: break-all;
 }
+
+/* ==========================================================================
+   Minimalist ASHA Simple Mode (Designed for Frontline Low-Literacy Usability)
+   ========================================================================== */
+
+.asha-welcome-banner {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  background: linear-gradient(135deg, #f0fdf4 0%, #ecfdf5 100%);
+  border: 1.5px solid #a7f3d0;
+  border-radius: var(--radius-lg);
+  padding: 1rem 1.25rem;
+  margin-bottom: 1.25rem;
+  flex-wrap: wrap;
+}
+
+.asha-welcome-left {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+}
+
+.asha-avatar-circle {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: #10b981;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.6rem;
+  box-shadow: 0 2px 6px rgba(16, 185, 129, 0.3);
+}
+
+.asha-greeting-text {
+  font-size: 1.2rem;
+  font-weight: 800;
+  color: #064e3b;
+  margin: 0;
+}
+
+.asha-location-tag {
+  font-size: 0.78rem;
+  color: #047857;
+  font-weight: 500;
+}
+
+.asha-mode-switch-container {
+  display: flex;
+  background: #ffffff;
+  padding: 0.25rem;
+  border-radius: 24px;
+  border: 1px solid #cbd5e1;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.asha-mode-btn {
+  padding: 0.4rem 0.85rem;
+  border-radius: 20px;
+  border: none;
+  background: transparent;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: #64748b;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.asha-mode-btn.active-simple {
+  background: #059669;
+  color: #ffffff;
+  box-shadow: 0 2px 5px rgba(5, 150, 105, 0.25);
+}
+
+.asha-mode-btn.active-detailed {
+  background: #1e293b;
+  color: #ffffff;
+}
+
+/* 3 Big Touch-Friendly Priority Cards ("आज का काम") */
+.asha-simple-priorities-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.asha-priority-card {
+  padding: 1.25rem;
+  border-radius: var(--radius-lg);
+  cursor: pointer;
+  text-align: left;
+  display: flex;
+  flex-direction: column;
+  transition: all var(--transition-fast);
+  min-height: 140px;
+}
+
+.asha-priority-card:hover {
+  transform: translateY(-2px);
+}
+
+.priority-card-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+
+.priority-badge-icon {
+  font-size: 1.75rem;
+}
+
+.priority-big-number {
+  font-size: 2.4rem;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.priority-title {
+  font-size: 1.05rem;
+  font-weight: 700;
+  margin-bottom: 0.25rem;
+}
+
+.priority-subtitle {
+  font-size: 0.82rem;
+  margin: 0;
+  opacity: 0.9;
+  flex: 1;
+}
+
+.priority-tap-prompt {
+  font-size: 0.75rem;
+  font-weight: 700;
+  margin-top: 0.75rem;
+  display: block;
+}
+
+/* Priority Card Colors */
+.card-urgent-bucket {
+  background: #fff5f5;
+  border: 2px solid #fca5a5;
+  color: #991b1b;
+}
+
+.card-urgent-bucket.active-filter {
+  border-color: #dc2626;
+  box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.25);
+  background: #fee2e2;
+}
+
+.card-overdue-bucket {
+  background: #fffbeb;
+  border: 2px solid #fde68a;
+  color: #92400e;
+}
+
+.card-overdue-bucket.active-filter {
+  border-color: #d97706;
+  box-shadow: 0 0 0 3px rgba(217, 119, 6, 0.25);
+  background: #fef3c7;
+}
+
+.card-routine-bucket {
+  background: #f0fdf4;
+  border: 2px solid #a7f3d0;
+  color: #065f46;
+}
+
+.card-routine-bucket.active-filter {
+  border-color: #059669;
+  box-shadow: 0 0 0 3px rgba(5, 150, 105, 0.25);
+  background: #d1fae5;
+}
+
+/* Patient Card Simple Styling */
+.patient-avatar-title-group {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+}
+
+.cohort-avatar-circle {
+  font-size: 1.5rem;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: #f1f5f9;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.patient-simple-name {
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: #0f172a;
+  display: block;
+  line-height: 1.2;
+}
+
+.patient-cohort-simple {
+  font-size: 0.78rem;
+  color: var(--color-text-muted);
+  font-weight: 600;
+}
+
+.asha-touch-actions {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.asha-btn-record {
+  min-height: 46px;
+  font-size: 0.92rem;
+  font-weight: 700;
+  padding: 0.5rem 1.1rem;
+  background: #059669;
+  border-color: #047857;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.asha-btn-record:hover {
+  background: #047857;
+}
+
+.asha-btn-call {
+  min-height: 46px;
+  background: #eff6ff;
+  color: #1d4ed8;
+  border-color: #bfdbfe;
+  font-weight: 700;
+  font-size: 0.85rem;
+  padding: 0.5rem 0.9rem;
+  display: inline-flex;
+  align-items: center;
+  text-decoration: none;
+}
+
+.asha-btn-call:hover {
+  background: #dbeafe;
+}
+
+.asha-btn-msg {
+  min-height: 46px;
+  font-size: 0.85rem;
+}
+
+.asha-btn-quick-esc {
+  min-height: 46px;
+  background: #dc2626;
+  border-color: #b91c1c;
+  color: #ffffff;
+  font-weight: 700;
+  font-size: 0.88rem;
+  padding: 0.5rem 1rem;
+}
+
+.asha-btn-quick-esc:hover {
+  background: #b91c1c;
+}
+
+.asha-action-guidance {
+  padding: 0.6rem 0.85rem;
+  border-radius: 6px;
+  font-size: 0.84rem;
+  margin: 0.6rem 0;
+  line-height: 1.4;
+}
+
+.asha-action-guidance.action-urgent {
+  background: #fef2f2;
+  border-left: 4px solid #ef4444;
+  color: #991b1b;
+}
+
+.asha-action-guidance.action-routine {
+  background: #f8fafc;
+  border-left: 4px solid #64748b;
+  color: #334155;
+}
+
+/* ==========================================================================
+   Cohort-Adaptive Check-In Modal (Touch-First & Low-Literacy Design)
+   ========================================================================== */
+
+.asha-checkin-modal {
+  max-width: 620px;
+  width: 95%;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+.asha-modal-header {
+  border-bottom: 2px solid #e2e8f0;
+}
+
+.asha-header-info {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.asha-patient-avatar {
+  font-size: 2.2rem;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: #ecfdf5;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.asha-patient-name {
+  color: #0f172a;
+}
+
+.channel-select-pills {
+  display: flex;
+  gap: 0.6rem;
+  margin-bottom: 1.25rem;
+}
+
+.channel-pill-btn {
+  flex: 1;
+  padding: 0.65rem 0.85rem;
+  border-radius: 8px;
+  border: 1.5px solid var(--color-border);
+  background: #ffffff;
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: #475569;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  min-height: 46px;
+}
+
+.channel-pill-btn.active {
+  background: #ecfdf5;
+  border-color: #10b981;
+  color: #065f46;
+  box-shadow: 0 1px 3px rgba(16, 185, 129, 0.2);
+}
+
+.asha-form-section {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: var(--radius-md);
+  padding: 1rem;
+  margin-bottom: 1.25rem;
+}
+
+.asha-section-title {
+  font-size: 0.95rem;
+  font-weight: 800;
+  color: #0f172a;
+  margin: 0;
+}
+
+.section-title-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.75rem;
+}
+
+.btn-clear-signs {
+  background: transparent;
+  border: 1px solid #cbd5e1;
+  border-radius: 4px;
+  padding: 0.2rem 0.55rem;
+  font-size: 0.75rem;
+  color: #64748b;
+  cursor: pointer;
+}
+
+.btn-clear-signs:hover {
+  background: #f1f5f9;
+  color: #0f172a;
+}
+
+.safe-pill-tag {
+  background: #d1fae5;
+  color: #065f46;
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 0.2rem 0.55rem;
+  border-radius: 4px;
+}
+
+/* Danger Touch Cards */
+.danger-cards-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0.5rem;
+}
+
+.danger-touch-card {
+  min-height: 52px;
+  padding: 0.75rem 1rem;
+  border-radius: 8px;
+  border: 1.5px solid #cbd5e1;
+  background: #ffffff;
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  text-align: left;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.danger-touch-card:hover {
+  border-color: #94a3b8;
+  background: #f8fafc;
+}
+
+.danger-touch-card.selected-danger {
+  background: #fef2f2;
+  border-color: #ef4444;
+  color: #991b1b;
+  box-shadow: 0 1px 4px rgba(239, 68, 68, 0.2);
+}
+
+.danger-card-icon {
+  font-size: 1.5rem;
+}
+
+.danger-card-text {
+  flex: 1;
+  font-size: 0.88rem;
+  font-weight: 700;
+  line-height: 1.3;
+}
+
+.danger-check-badge {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: #e2e8f0;
+  color: #64748b;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  font-size: 0.95rem;
+}
+
+.selected-danger .danger-check-badge {
+  background: #ef4444;
+  color: #ffffff;
+}
+
+/* Vitals Inputs with Traffic-Light Feedback */
+.vitals-group-box {
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  padding: 0.85rem;
+  margin-bottom: 0.85rem;
+}
+
+.vitals-box-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.6rem;
+}
+
+.traffic-pill {
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 0.2rem 0.6rem;
+  border-radius: 12px;
+}
+
+.traffic-pill.pill-danger {
+  background: #fee2e2;
+  color: #991b1b;
+  border: 1px solid #fca5a5;
+  animation: pulse-border 1.5s infinite;
+}
+
+.traffic-pill.pill-normal {
+  background: #dcfce7;
+  color: #166534;
+  border: 1px solid #86efac;
+}
+
+.vitals-input-row {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.vital-input-col {
+  flex: 1;
+}
+
+.vital-input-col label {
+  display: block;
+  font-size: 0.76rem;
+  color: var(--color-text-muted);
+  margin-bottom: 0.25rem;
+  font-weight: 600;
+}
+
+.slash-divider {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: #94a3b8;
+  margin-top: 1rem;
+}
+
+.vital-single-row {
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  padding: 0.85rem;
+  margin-bottom: 0.85rem;
+}
+
+.vital-single-row label {
+  display: block;
+  font-size: 0.82rem;
+  font-weight: 700;
+  margin-bottom: 0.35rem;
+  color: #1e293b;
+}
+
+.asha-input {
+  font-size: 1.15rem;
+  font-weight: 800;
+  padding: 0.55rem 0.85rem;
+  border-radius: 6px;
+  border: 2px solid #cbd5e1;
+  width: 100%;
+  color: #0f172a;
+  transition: all var(--transition-fast);
+}
+
+.asha-input:focus {
+  border-color: #059669;
+  outline: none;
+}
+
+.asha-input.input-alert {
+  border-color: #ef4444;
+  background: #fff5f5;
+  color: #991b1b;
+}
+
+.extra-vitals-accordion {
+  margin-top: 0.5rem;
+}
+
+.btn-toggle-extra {
+  background: transparent;
+  border: none;
+  color: var(--color-primary);
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: underline;
+  padding: 0.2rem 0;
+}
+
+.extra-vitals-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+  margin-top: 0.6rem;
+}
+
+/* Quick Notes & Voice Input */
+.quick-pills-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+  margin-bottom: 0.75rem;
+}
+
+.quick-note-pill {
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
+  font-size: 0.78rem;
+  font-weight: 600;
+  padding: 0.35rem 0.75rem;
+  border-radius: 20px;
+  cursor: pointer;
+  color: #334155;
+  transition: all var(--transition-fast);
+}
+
+.quick-note-pill:hover {
+  background: #f1f5f9;
+  border-color: #059669;
+  color: #059669;
+}
+
+.btn-voice-dictation {
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  color: #991b1b;
+  font-size: 0.78rem;
+  font-weight: 700;
+  padding: 0.3rem 0.75rem;
+  border-radius: 18px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  transition: all var(--transition-fast);
+}
+
+.btn-voice-dictation.listening-pulse {
+  background: #ef4444;
+  color: #ffffff;
+  animation: pulse-red 1.2s infinite;
+}
+
+@keyframes pulse-red {
+  0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.5); }
+  70% { box-shadow: 0 0 0 8px rgba(239, 68, 68, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+}
+
+.asha-textarea {
+  width: 100%;
+  border-radius: 6px;
+  border: 1.5px solid #cbd5e1;
+  padding: 0.65rem;
+  font-size: 0.88rem;
+  line-height: 1.4;
+  font-family: inherit;
+}
+
+.asha-modal-actions {
+  display: flex;
+  gap: 0.75rem;
+  margin-top: 1.5rem;
+  padding-top: 1rem;
+  border-top: 1px solid #e2e8f0;
+}
+
+.asha-btn-cancel {
+  flex: 1;
+  min-height: 48px;
+  font-size: 0.92rem;
+  font-weight: 600;
+  background: #f1f5f9;
+  color: #475569;
+}
+
+.asha-btn-submit {
+  flex: 2;
+  min-height: 48px;
+  font-size: 1.05rem;
+  font-weight: 800;
+  background: #059669;
+  color: #ffffff;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(5, 150, 105, 0.3);
+  transition: all var(--transition-fast);
+}
+
+.asha-btn-submit:hover:not(:disabled) {
+  background: #047857;
+}

@@ -24,6 +24,7 @@ export default function WorkerDashboard() {
   } = useOffline();
   const [callList, setCallList] = useState([]);
   const [filter, setFilter] = useState('all');
+  const [simpleMode, setSimpleMode] = useState(true);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [selectedPatientForCheckIn, setSelectedPatientForCheckIn] = useState(null);
@@ -141,6 +142,36 @@ export default function WorkerDashboard() {
       {toastMessage && <div className="alert alert-success">{toastMessage}</div>}
       {error && <div className="alert alert-error">{error}</div>}
 
+      {/* Frontline ASHA Welcome Banner & Simple Mode Switcher */}
+      <div className="asha-welcome-banner">
+        <div className="asha-welcome-left">
+          <span className="asha-avatar-circle">👩‍⚕️</span>
+          <div>
+            <h3 className="asha-greeting-text">{t('asha_greeting')}</h3>
+            <span className="asha-location-tag">{t('asha_tagline')}</span>
+          </div>
+        </div>
+
+        <div className="asha-mode-switch-container">
+          <button
+            type="button"
+            className={`asha-mode-btn ${simpleMode ? 'active-simple' : ''}`}
+            onClick={() => setSimpleMode(true)}
+            title="Simplified, large-touch visual interface for frontline field visits"
+          >
+            {t('asha_mode_simple')}
+          </button>
+          <button
+            type="button"
+            className={`asha-mode-btn ${!simpleMode ? 'active-detailed' : ''}`}
+            onClick={() => setSimpleMode(false)}
+            title="Technical protocol tables & detailed filters"
+          >
+            {t('asha_mode_detailed')}
+          </button>
+        </div>
+      </div>
+
       {/* Frontline Offline Sync Status Banner */}
       {(isOffline || queueCount > 0) && (
         <div className={`offline-sync-card ${isOffline ? 'mode-offline' : 'mode-queued'}`}>
@@ -208,54 +239,119 @@ export default function WorkerDashboard() {
         </div>
       )}
 
-      {/* Metrics Row */}
-      <div className="metrics-row">
-        <div className="metric-card metric-total">
-          <span className="metric-num">{metrics.total}</span>
-          <span className="metric-label">{t('metric_assigned')}</span>
-        </div>
-        <div className="metric-card metric-urgent">
-          <span className="metric-num">{metrics.concerning}</span>
-          <span className="metric-label">{t('metric_clinical_alerts')}</span>
-        </div>
-        <div className="metric-card metric-warning">
-          <span className="metric-num">{metrics.overdue}</span>
-          <span className="metric-label">{t('metric_overdue')}</span>
-        </div>
-        <div className="metric-card metric-info">
-          <span className="metric-num">{metrics.dueSoon}</span>
-          <span className="metric-label">{t('metric_due_soon')}</span>
-        </div>
-      </div>
+      {/* SIMPLE ASHA MODE: 3 Big Touch-Friendly Action Cards */}
+      {simpleMode ? (
+        <div className="asha-simple-priorities-grid">
+          {/* Card 1: Urgent Danger */}
+          <button
+            type="button"
+            className={`asha-priority-card card-urgent-bucket ${filter === 'concerning' ? 'active-filter' : ''}`}
+            onClick={() => setFilter(filter === 'concerning' ? 'all' : 'concerning')}
+          >
+            <div className="priority-card-top">
+              <span className="priority-badge-icon">🚨</span>
+              <span className="priority-big-number">{metrics.concerning}</span>
+            </div>
+            <strong className="priority-title">{t('urgent_bucket_title')}</strong>
+            <p className="priority-subtitle">{t('urgent_bucket_sub')}</p>
+            <span className="priority-tap-prompt">
+              {filter === 'concerning'
+                ? (lang === 'hi' ? '✓ फ़िल्टर सक्रिय (सभी देखने हेतु दबाएं)' : '✓ Filter Active')
+                : (lang === 'hi' ? '👉 देखने के लिए दबाएं' : '👉 Tap to view')}
+            </span>
+          </button>
 
-      {/* Filter Tabs */}
-      <div className="filter-bar">
-        <span className="filter-title">{t('filter_label')}</span>
-        <button
-          className={`filter-chip ${filter === 'all' ? 'active' : ''}`}
-          onClick={() => setFilter('all')}
-        >
-          {t('filter_all')} ({metrics.total})
-        </button>
-        <button
-          className={`filter-chip chip-concerning ${filter === 'concerning' ? 'active' : ''}`}
-          onClick={() => setFilter('concerning')}
-        >
-          {t('filter_concerning')} ({metrics.concerning})
-        </button>
-        <button
-          className={`filter-chip chip-overdue ${filter === 'overdue' ? 'active' : ''}`}
-          onClick={() => setFilter('overdue')}
-        >
-          {t('filter_overdue')} ({metrics.overdue})
-        </button>
-        <button
-          className={`filter-chip chip-escalated ${filter === 'escalated' ? 'active' : ''}`}
-          onClick={() => setFilter('escalated')}
-        >
-          {t('filter_escalated')}
-        </button>
-      </div>
+          {/* Card 2: Overdue */}
+          <button
+            type="button"
+            className={`asha-priority-card card-overdue-bucket ${filter === 'overdue' ? 'active-filter' : ''}`}
+            onClick={() => setFilter(filter === 'overdue' ? 'all' : 'overdue')}
+          >
+            <div className="priority-card-top">
+              <span className="priority-badge-icon">⏳</span>
+              <span className="priority-big-number">{metrics.overdue}</span>
+            </div>
+            <strong className="priority-title">{t('overdue_bucket_title')}</strong>
+            <p className="priority-subtitle">{t('overdue_bucket_sub')}</p>
+            <span className="priority-tap-prompt">
+              {filter === 'overdue'
+                ? (lang === 'hi' ? '✓ फ़िल्टर सक्रिय (सभी देखने हेतु दबाएं)' : '✓ Filter Active')
+                : (lang === 'hi' ? '👉 देखने के लिए दबाएं' : '👉 Tap to view')}
+            </span>
+          </button>
+
+          {/* Card 3: Routine Check-Ins */}
+          <button
+            type="button"
+            className={`asha-priority-card card-routine-bucket ${filter === 'all' ? 'active-filter' : ''}`}
+            onClick={() => setFilter('all')}
+          >
+            <div className="priority-card-top">
+              <span className="priority-badge-icon">🟢</span>
+              <span className="priority-big-number">
+                {metrics.dueSoon || (metrics.total - metrics.concerning - metrics.overdue)}
+              </span>
+            </div>
+            <strong className="priority-title">{t('routine_bucket_title')}</strong>
+            <p className="priority-subtitle">{t('routine_bucket_sub')}</p>
+            <span className="priority-tap-prompt">
+              {filter === 'all'
+                ? (lang === 'hi' ? '✓ सभी मरीज़ दिख रहे हैं' : '✓ Showing All')
+                : (lang === 'hi' ? '👉 सभी मरीज़ देखें' : '👉 Tap to view all')}
+            </span>
+          </button>
+        </div>
+      ) : (
+        /* DETAILED MODE: Standard 4 metrics and filter chips */
+        <>
+          <div className="metrics-row">
+            <div className="metric-card metric-total">
+              <span className="metric-num">{metrics.total}</span>
+              <span className="metric-label">{t('metric_assigned')}</span>
+            </div>
+            <div className="metric-card metric-urgent">
+              <span className="metric-num">{metrics.concerning}</span>
+              <span className="metric-label">{t('metric_clinical_alerts')}</span>
+            </div>
+            <div className="metric-card metric-warning">
+              <span className="metric-num">{metrics.overdue}</span>
+              <span className="metric-label">{t('metric_overdue')}</span>
+            </div>
+            <div className="metric-card metric-info">
+              <span className="metric-num">{metrics.dueSoon}</span>
+              <span className="metric-label">{t('metric_due_soon')}</span>
+            </div>
+          </div>
+
+          <div className="filter-bar">
+            <span className="filter-title">{t('filter_label')}</span>
+            <button
+              className={`filter-chip ${filter === 'all' ? 'active' : ''}`}
+              onClick={() => setFilter('all')}
+            >
+              {t('filter_all')} ({metrics.total})
+            </button>
+            <button
+              className={`filter-chip chip-concerning ${filter === 'concerning' ? 'active' : ''}`}
+              onClick={() => setFilter('concerning')}
+            >
+              {t('filter_concerning')} ({metrics.concerning})
+            </button>
+            <button
+              className={`filter-chip chip-overdue ${filter === 'overdue' ? 'active' : ''}`}
+              onClick={() => setFilter('overdue')}
+            >
+              {t('filter_overdue')} ({metrics.overdue})
+            </button>
+            <button
+              className={`filter-chip chip-escalated ${filter === 'escalated' ? 'active' : ''}`}
+              onClick={() => setFilter('escalated')}
+            >
+              {t('filter_escalated')}
+            </button>
+          </div>
+        </>
+      )}
 
       {/* Prioritized Patient Call List */}
       {loading ? (
@@ -279,14 +375,28 @@ export default function WorkerDashboard() {
                 <div className="call-card-top">
                   <div className="patient-main-info">
                     <div className="patient-header-line">
-                      <span className="patient-id-tag">{patient.pseudonym}</span>
+                      <div className="patient-avatar-title-group">
+                        <span className="cohort-avatar-circle">
+                          {patient.cohort === 'antenatal' ? '🤰' : patient.cohort === 'hypertension' ? '🫀' : '🩸'}
+                        </span>
+                        <div>
+                          <strong className="patient-simple-name">{patient.pseudonym}</strong>
+                          <span className="patient-cohort-simple">
+                            {patient.cohort === 'antenatal'
+                              ? t('cohort_antenatal_label')
+                              : patient.cohort === 'hypertension'
+                              ? t('cohort_hypertension_label')
+                              : t('cohort_diabetes_label')}
+                          </span>
+                        </div>
+                      </div>
+
                       <span className={`priority-pill priority-rank-${patient.priorityRank}`}>
                         {getPriorityLabel(patient.priorityRank, patient.priorityLabel)}
                       </span>
                     </div>
 
                     <div className="patient-meta-tags">
-                      <span className="meta-tag tag-cohort">{patient.cohort?.toUpperCase()}</span>
                       <span className="meta-tag tag-location">📍 {patient.village_or_ward}</span>
                       <span className="meta-tag tag-age">👤 {patient.age_band}</span>
                       <span className={`consent-badge consent-${patient.consent_status}`}>
@@ -342,26 +452,50 @@ export default function WorkerDashboard() {
                 )}
 
                 {/* Card footer actions */}
-                <div className="call-card-actions">
+                <div className="call-card-actions asha-touch-actions">
                   <button
-                    className="btn btn-primary"
+                    className="btn btn-primary asha-btn-record"
                     onClick={() => setSelectedPatientForCheckIn(patient)}
                   >
-                    {t('record_checkin_btn')}
+                    🏠 {lang === 'hi' ? 'घर पर जांच करें' : 'Record Check-In'}
                   </button>
+
+                  <a
+                    href="tel:9876543210"
+                    className="btn btn-secondary asha-btn-call"
+                    title="Call patient"
+                  >
+                    📞 {lang === 'hi' ? 'फोन करें' : 'Call'}
+                  </a>
 
                   <button
                     type="button"
-                    className="btn btn-secondary btn-msg-preview"
+                    className="btn btn-secondary btn-msg-preview asha-btn-msg"
                     onClick={() => setSelectedPatientForMessage(patient)}
                     title="Preview patient SMS / WhatsApp follow-up reminder"
                   >
-                    💬 {lang === 'hi' ? 'व्हाट्सएप प्रीव्यू' : 'WhatsApp Preview'}
+                    💬 {lang === 'hi' ? 'व्हाट्सएप' : 'WhatsApp'}
                   </button>
 
-                  <Link to={`/patient/${patient.patient_id}`} className="btn btn-outline">
-                    {t('view_timeline_btn')}
-                  </Link>
+                  {/* If patient has clinical flag, prominent doctor escalate button */}
+                  {patient.flags?.some((f) => f.type === 'clinical' && f.status === 'active') && (
+                    <button
+                      type="button"
+                      className="btn btn-escalate asha-btn-quick-esc"
+                      onClick={() => {
+                        const clinFlag = patient.flags.find((f) => f.type === 'clinical' && f.status === 'active');
+                        if (clinFlag) setEscalatingFlag(clinFlag);
+                      }}
+                    >
+                      🩺 {lang === 'hi' ? 'डॉक्टर को भेजें' : 'Send to Doctor'}
+                    </button>
+                  )}
+
+                  {!simpleMode && (
+                    <Link to={`/patient/${patient.patient_id}`} className="btn btn-outline">
+                      {t('view_timeline_btn')}
+                    </Link>
+                  )}
                 </div>
               </div>
             );

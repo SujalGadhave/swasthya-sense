@@ -319,3 +319,4 @@ export default function OfflineSimulatorModal({ onClose, onSyncComplete }) {
     </div>
   );
 }
+

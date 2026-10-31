@@ -24,16 +24,20 @@ export default function FlagCard({ flag, onEscalate, onAcknowledge, isWorker = f
         <div className="flag-tags">
           <span className={`flag-badge ${isClinical ? 'badge-clinical' : 'badge-reminder'}`}>
             {isClinical
-              ? (lang === 'hi' ? '🚨 चिकित्सा अलर्ट' : '🚨 Clinical Alert')
-              : (lang === 'hi' ? '📅 प्रशासनिक अनुस्मारक' : '📅 Administrative Reminder')}
+              ? (lang === 'hi' ? '🚨 खतरे का संकेत (खुराक / डॉक्टर रेफरल)' : '🚨 Urgent Clinical Danger Alert')
+              : (lang === 'hi' ? '📅 छूटी हुई जांच (Overdue)' : '📅 Overdue Reminder')}
           </span>
-          <span className="flag-rule-id">Rule {flag.rule_id}</span>
-          <span className={`severity-tag severity-${flag.severity || 'info'}`}>
-            {flag.severity}
-          </span>
+          {!isWorker && <span className="flag-rule-id">Rule {flag.rule_id}</span>}
+          {!isWorker && (
+            <span className={`severity-tag severity-${flag.severity || 'info'}`}>
+              {flag.severity}
+            </span>
+          )}
           {flag.status && (
             <span className={`status-tag status-${flag.status}`}>
-              {flag.status}
+              {flag.status === 'escalated'
+                ? (lang === 'hi' ? 'डॉक्टर को भेजा गया' : 'Escalated to Doctor')
+                : flag.status}
             </span>
           )}
         </div>
@@ -54,8 +58,29 @@ export default function FlagCard({ flag, onEscalate, onAcknowledge, isWorker = f
           />
         )}
 
-        {/* Triggering values breakdown */}
-        {Object.keys(values).length > 0 && !hasTrendData && (
+        {/* Action instruction for Frontline ASHA */}
+        {isWorker && (
+          <div className={`asha-action-guidance ${isClinical ? 'action-urgent' : 'action-routine'}`}>
+            {isClinical ? (
+              <span>
+                👉 <strong>{lang === 'hi' ? 'आशा कार्यकर्ता का अगला कदम:' : 'ASHA Worker Action:'}</strong>{' '}
+                {lang === 'hi'
+                  ? 'मरीज़ को तुरंत प्राथमिक स्वास्थ्य केंद्र (PHC) डॉक्टर के पास रेफर करें।'
+                  : 'Refer patient to Primary Health Centre (PHC) doctor immediately.'}
+              </span>
+            ) : (
+              <span>
+                👉 <strong>{lang === 'hi' ? 'आशा कार्यकर्ता का अगला कदम:' : 'ASHA Worker Action:'}</strong>{' '}
+                {lang === 'hi'
+                  ? 'घर जाकर मरीज़ से मिलें और नियमित स्वास्थ्य जांच दर्ज करें।'
+                  : 'Visit household and complete routine follow-up check-in.'}
+              </span>
+            )}
+          </div>
+        )}
+
+        {/* Triggering values breakdown - visible to Clinicians and Supervisors */}
+        {!isWorker && Object.keys(values).length > 0 && !hasTrendData && (
           <div className="triggering-values">
             <span className="values-label">Triggering inputs:</span>
             <div className="values-chips">

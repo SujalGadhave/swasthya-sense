@@ -89,6 +89,37 @@ export const translations = {
 
     // Notice & Disclaimer
     disclaimer_flag_text: '⚠️ Prototype — Flagged for clinician review. Thresholds illustrative only.',
+
+    // Minimalist ASHA Simple Mode
+    asha_greeting: 'Namaste, Sunita Didi',
+    asha_tagline: 'Ward 3 · Primary Health Centre Sitapur',
+    asha_mode_simple: '✨ Simple ASHA Mode',
+    asha_mode_detailed: '📊 Detailed View',
+    today_work_heading: "Today's Priorities (आज का काम)",
+    urgent_bucket_title: '1. Refer to Doctor (खतरे के मरीज़)',
+    urgent_bucket_sub: 'Danger signs or severe high BP/Sugar',
+    overdue_bucket_title: '2. Missed Visits (छूटे हुए)',
+    overdue_bucket_sub: 'Overdue visits — visit doorstep today',
+    routine_bucket_title: '3. Routine Visits (नियमित जांच)',
+    routine_bucket_sub: 'Scheduled check-ups for this week',
+    cohort_antenatal_label: '🤰 Pregnant Mother (ANC)',
+    cohort_hypertension_label: '🫀 Blood Pressure (HTN)',
+    cohort_diabetes_label: '🩸 Sugar / Diabetes',
+    action_home_visit: '🏠 Record Check-In',
+    action_call: '📞 Call',
+    action_escalate: '🩺 Send to Doctor',
+    action_whatsapp: '💬 Message',
+    vitals_normal: '🟢 Normal (Safe)',
+    vitals_high_danger: '🔴 Danger! Consult Doctor',
+    voice_speak_btn: '🎙️ Tap to Speak (Hindi Voice)',
+    voice_listening: '🔴 Listening... speak now',
+    quick_notes_heading: 'Quick Observations (Tap to add):',
+    pill_taking_meds: 'Taking medicines regularly',
+    pill_advised_rest: 'Advised rest & hydration',
+    pill_unwell: 'Patient reported feeling unwell',
+    pill_advised_phc: 'Advised to visit PHC doctor',
+    danger_signs_simple_heading: 'Danger Signs (Tap any that apply):',
+    danger_signs_none: '✓ No danger signs observed (All Normal)',
   },
 
   hi: {
@@ -177,6 +208,37 @@ export const translations = {
 
     // Notice & Disclaimer
     disclaimer_flag_text: '⚠️ प्रोटोटाइप — डॉक्टर की समीक्षा के लिए चिन्हित। सीमाएं केवल सांकेतिक हैं।',
+
+    // Minimalist ASHA Simple Mode
+    asha_greeting: 'नमस्ते, सुनीता दीदी',
+    asha_tagline: 'वार्ड 3 · प्राथमिक स्वास्थ्य केंद्र (PHC) सीतापुर',
+    asha_mode_simple: '✨ सरल आशा मोड',
+    asha_mode_detailed: '📊 विस्तृत मोड',
+    today_work_heading: 'आज का काम (Today\'s Tasks)',
+    urgent_bucket_title: '1. डॉक्टर को दिखाएं (खतरे के मरीज़)',
+    urgent_bucket_sub: 'खतरे के लक्षण या अत्यधिक बढ़ा हुआ बीपी / शुगर',
+    overdue_bucket_title: '2. छूटे हुए मरीज़ (घर जाकर मिलें)',
+    overdue_bucket_sub: 'जांच की तारीख निकल चुकी है, आज घर जाएं',
+    routine_bucket_title: '3. नियमित जांच (सब सामान्य)',
+    routine_bucket_sub: 'इस सप्ताह की सामान्य फॉलो-अप जांच',
+    cohort_antenatal_label: '🤰 गर्भवती महिला (ANC)',
+    cohort_hypertension_label: '🫀 उच्च रक्तचाप (बीपी)',
+    cohort_diabetes_label: '🩸 मधुमेह (शुगर)',
+    action_home_visit: '🏠 जांच दर्ज करें',
+    action_call: '📞 फोन करें',
+    action_escalate: '🩺 डॉक्टर को भेजें',
+    action_whatsapp: '💬 व्हाट्सएप',
+    vitals_normal: '🟢 सामान्य (सुरक्षित)',
+    vitals_high_danger: '🔴 खतरा! डॉक्टर को दिखाएं',
+    voice_speak_btn: '🎙️ बोलकर लिखें (हिंदी में बोलें)',
+    voice_listening: '🔴 सुन रहे हैं... बोलिए',
+    quick_notes_heading: 'त्वरित टिप्पणी (दबाकर जोड़ें):',
+    pill_taking_meds: 'दवा समय पर ले रहे हैं',
+    pill_advised_rest: 'आराम करने की सलाह दी',
+    pill_unwell: 'मरीज़ की तबीयत ठीक नहीं है',
+    pill_advised_phc: 'PHC अस्पताल जाने को कहा',
+    danger_signs_simple_heading: 'खतरे के लक्षण (यदि कोई दिखे तो दबाएं):',
+    danger_signs_none: '✓ कोई खतरे का लक्षण नहीं है (सब ठीक)',
   }
 };
 
