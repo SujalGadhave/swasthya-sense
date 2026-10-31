@@ -17,7 +17,12 @@ router.post('/', authenticateToken, requireRole(['worker', 'supervisor']), async
   const conn = await pool.getConnection();
 
   try {
-    const { flag_id, to_clinician_id, worker_note = '' } = req.body;
+    const {
+      flag_id,
+      to_clinician_id,
+      worker_note = '',
+      referral_facility = 'Govt Primary Health Centre (PHC Sitapur)'
+    } = req.body;
 
     if (!flag_id) {
       return res.status(400).json({ error: 'Flag ID is required for escalation' });
@@ -45,11 +50,12 @@ router.post('/', authenticateToken, requireRole(['worker', 'supervisor']), async
     }
 
     const escalationId = crypto.randomUUID();
+    const initialOutcome = `Referred to ${referral_facility}`;
 
     await conn.query(
       `INSERT INTO escalations (id, flag_id, from_worker_id, to_clinician_id, status, clinician_note, outcome, created_at, updated_at)
-       VALUES (?, ?, ?, ?, 'pending', NULL, NULL, NOW(), NOW())`,
-      [escalationId, flag_id, req.user.id, targetClinicianId]
+       VALUES (?, ?, ?, ?, 'pending', NULL, ?, NOW(), NOW())`,
+      [escalationId, flag_id, req.user.id, targetClinicianId, initialOutcome]
     );
 
     await conn.query("UPDATE flags SET status = 'escalated' WHERE id = ?", [flag_id]);
@@ -57,13 +63,15 @@ router.post('/', authenticateToken, requireRole(['worker', 'supervisor']), async
     await logAudit(conn, {
       userId: req.user.id,
       role: req.user.role,
-      action: 'FLAG_ESCALATED',
+      action: 'FLAG_ESCALATED_GOVT_HOSPITAL',
       entityType: 'escalation',
       entityId: escalationId,
       metadata: {
         flagId: flag_id,
         ruleId: flag.rule_id,
         toClinicianId: targetClinicianId,
+        targetFacility: referral_facility,
+        referralType: 'GOVERNMENT_HEALTH_FACILITY_NHM',
         workerNote: worker_note
       }
     });
@@ -74,7 +82,8 @@ router.post('/', authenticateToken, requireRole(['worker', 'supervisor']), async
       success: true,
       escalationId,
       flagId: flag_id,
-      status: 'pending'
+      status: 'pending',
+      referralFacility: referral_facility
     });
   } catch (error) {
     await conn.rollback();

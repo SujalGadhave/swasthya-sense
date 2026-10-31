@@ -56,7 +56,7 @@ export const translations = {
     flags_triggered_title: 'Transparent Flags Triggered:',
     record_checkin_btn: '📝 Record Check-In',
     view_timeline_btn: '📊 View Timeline & Consent',
-    escalate_btn: '↗ Escalate to Clinician',
+    escalate_btn: '🏥 Refer to Govt Hospital & Doctor',
     acknowledge_btn: '✓ Mark Acknowledged',
     escalation_status_label: 'Escalation Status:',
 
@@ -175,7 +175,7 @@ export const translations = {
     flags_triggered_title: 'सिस्टम द्वारा पाए गए जोखिम संकेत (Flags):',
     record_checkin_btn: '📝 जांच दर्ज करें',
     view_timeline_btn: '📊 इतिहास व सहमति देखें',
-    escalate_btn: '↗ डॉक्टर को रेफर करें',
+    escalate_btn: '🏥 सरकारी अस्पताल / डॉक्टर को रेफर करें',
     acknowledge_btn: '✓ स्वीकार किया',
     escalation_status_label: 'डॉक्टर रेफरल स्थिति:',
 

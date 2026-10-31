@@ -31,6 +31,7 @@ export default function WorkerDashboard() {
   const [selectedPatientForMessage, setSelectedPatientForMessage] = useState(null);
   const [escalatingFlag, setEscalatingFlag] = useState(null);
   const [escalateNote, setEscalateNote] = useState('');
+  const [referralFacility, setReferralFacility] = useState('Govt Primary Health Centre (PHC Sitapur)');
   const [submittingEscalation, setSubmittingEscalation] = useState(false);
   const [toastMessage, setToastMessage] = useState('');
 
@@ -81,9 +82,14 @@ export default function WorkerDashboard() {
     try {
       await api.escalations.create({
         flag_id: escalatingFlag.id,
-        worker_note: escalateNote,
+        worker_note: `[Referral Facility: ${referralFacility}] ${escalateNote}`,
+        referral_facility: referralFacility,
       });
-      showToast(`Clinical alert [Rule ${escalatingFlag.rule_id}] escalated to clinician for review.`);
+      showToast(
+        lang === 'hi'
+          ? `मरीज़ को ${referralFacility} के सरकारी डॉक्टर (डॉ. राजेश शर्मा) के पास रेफर किया गया!`
+          : `Patient successfully referred to ${referralFacility} (Dr. Rajesh Sharma, Govt Medical Officer)!`
+      );
       setEscalatingFlag(null);
       setEscalateNote('');
       fetchCallList(filter);
@@ -513,43 +519,132 @@ export default function WorkerDashboard() {
         />
       )}
 
-      {/* Escalation Modal */}
+      {/* Escalation Modal - Official Government Hospital & Medical Officer Referral */}
       {escalatingFlag && (
         <div className="modal-overlay">
-          <div className="modal-container">
+          <div className="modal-container govt-referral-modal">
             <div className="modal-header">
               <div>
-                <h3>Escalate Clinical Alert to Clinician</h3>
+                <div className="govt-badge-header">
+                  <span className="govt-emblem">🏛️</span>
+                  <h3>
+                    {lang === 'hi'
+                      ? 'सरकारी अस्पताल एवं डॉक्टर को रेफर करें'
+                      : 'Refer to Government Hospital & Medical Officer'}
+                  </h3>
+                </div>
                 <span className="modal-subtitle">
-                  Flag: [Rule {escalatingFlag.rule_id}] {escalatingFlag.explanation}
+                  {lang === 'hi' ? 'जोखिम लक्षण:' : 'Flag:'} {escalatingFlag.explanation || `Rule ${escalatingFlag.rule_id}`}
                 </span>
               </div>
               <button className="btn-close" onClick={() => setEscalatingFlag(null)}>✕</button>
             </div>
 
+            {/* Official NHM Free Healthcare Assurance Banner */}
+            <div className="nhm-assurance-banner">
+              <strong>🏛️ {lang === 'hi' ? 'राष्ट्रीय स्वास्थ्य मिशन (NHM) नियम:' : 'National Health Mission (NHM) Protocol:'}</strong>{' '}
+              {lang === 'hi'
+                ? 'सरकारी अस्पताल (PHC / CHC / जिला अस्पताल) में सभी परामर्श, पैथोलॉजी जांचें एवं दवाइयां पूर्णतः निःशुल्क हैं।'
+                : 'All consultations, diagnostics, and medicines at Government PHC / CHC / District Hospitals are 100% free of cost.'}
+            </div>
+
             <form onSubmit={handleEscalateSubmit} className="escalate-modal-form">
+              {/* Select Government Health Facility Tier */}
               <div className="form-group">
-                <label>Target Medical Officer</label>
-                <input
-                  type="text"
-                  value="Dr. Rajesh Sharma (Medical Officer - PHC)"
-                  disabled
-                />
+                <label className="govt-label">
+                  🏥 {lang === 'hi' ? 'रेफरल हेतु सरकारी स्वास्थ्य केंद्र चुनें:' : 'Target Government Health Facility:'}
+                </label>
+                <select
+                  value={referralFacility}
+                  onChange={(e) => setReferralFacility(e.target.value)}
+                  className="govt-select-input"
+                >
+                  <option value="Govt Primary Health Centre (PHC Sitapur)">
+                    🏥 {lang === 'hi' ? 'सरकारी प्राथमिक स्वास्थ्य केंद्र (PHC सीतापुर) - डॉ. राजेश शर्मा' : 'Govt Primary Health Centre (PHC Sitapur) - Dr. Rajesh Sharma'}
+                  </option>
+                  <option value="Govt Community Health Centre (CHC Sitapur)">
+                    🏥 {lang === 'hi' ? 'सरकारी सामुदायिक स्वास्थ्य केंद्र (CHC सीतापुर) - 24x7 आपातकालीन ओपीडी' : 'Govt Community Health Centre (CHC Sitapur) - 24x7 Emergency OPD'}
+                  </option>
+                  <option value="Govt District Hospital (Sitapur DH)">
+                    🏥 {lang === 'hi' ? 'सरकारी जिला अस्पताल (District Hospital Sitapur) - विशेषज्ञ वार्ड' : 'Govt District Hospital (Sitapur DH) - Specialist High-Risk Unit'}
+                  </option>
+                </select>
               </div>
 
+              {/* Designated Government Medical Officer */}
               <div className="form-group">
-                <label>Frontline Worker Observations & Reason for Escalation</label>
+                <label className="govt-label">
+                  🩺 {lang === 'hi' ? 'नामित सरकारी चिकित्सा अधिकारी (Medical Officer):' : 'Assigned Government Medical Officer:'}
+                </label>
+                <div className="govt-doctor-card">
+                  <span className="doc-avatar">👨‍⚕️</span>
+                  <div>
+                    <strong>Dr. Rajesh Sharma, MBBS</strong>
+                    <span className="doc-designation">
+                      {lang === 'hi'
+                        ? 'सरकारी चिकित्सा अधिकारी · प्राथमिक स्वास्थ्य केंद्र (PHC सीतापुर)'
+                        : 'Govt Medical Officer · Primary Health Centre (PHC Sitapur)'}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Quick 1-Tap Referral Reasons */}
+              <div className="form-group">
+                <label className="govt-label">
+                  ⚡ {lang === 'hi' ? 'त्वरित रेफरल कारण (दबाकर जोड़ें):' : 'Quick Referral Reasons (Tap to add):'}
+                </label>
+                <div className="quick-referral-pills">
+                  <button
+                    type="button"
+                    className="referral-pill"
+                    onClick={() => setEscalateNote((prev) => prev ? `${prev}. तेज सिरदर्द एवं बीपी अधिक है` : 'तेज सिरदर्द एवं बीपी अधिक है')}
+                  >
+                    + 🚨 {lang === 'hi' ? 'बीपी खतरनाक स्तर पर' : 'Severe High BP'}
+                  </button>
+                  <button
+                    type="button"
+                    className="referral-pill"
+                    onClick={() => setEscalateNote((prev) => prev ? `${prev}. गर्भावस्था में खतरे के लक्षण (ANC Alert)` : 'गर्भावस्था में खतरे के लक्षण (ANC Alert)')}
+                  >
+                    + 🤰 {lang === 'hi' ? 'गर्भावस्था खतरे के लक्षण' : 'ANC Danger Sign'}
+                  </button>
+                  <button
+                    type="button"
+                    className="referral-pill"
+                    onClick={() => setEscalateNote((prev) => prev ? `${prev}. तुरंत 108 एम्बुलेंस द्वारा सरकारी अस्पताल भेजा गया` : 'तुरंत 108 एम्बुलेंस द्वारा सरकारी अस्पताल भेजा गया')}
+                  >
+                    + 🚑 {lang === 'hi' ? '108 एम्बुलेंस द्वारा भेजा' : 'Referred via 108 Ambulance'}
+                  </button>
+                  <button
+                    type="button"
+                    className="referral-pill"
+                    onClick={() => setEscalateNote((prev) => prev ? `${prev}. मरीज़ को तुरंत सरकारी अस्पताल ओपीडी में मिलने को कहा` : 'मरीज़ को तुरंत सरकारी अस्पताल ओपीडी में मिलने को कहा')}
+                  >
+                    + 🏥 {lang === 'hi' ? 'सरकारी ओपीडी जाने को कहा' : 'Advised Govt OPD visit'}
+                  </button>
+                </div>
+
                 <textarea
-                  rows="4"
-                  placeholder="Describe patient symptoms, reported distress, or reasons requiring medical clinician review..."
+                  rows="3"
+                  placeholder={
+                    lang === 'hi'
+                      ? 'सरकारी डॉक्टर के लिए लक्षण व कारण दर्ज करें...'
+                      : 'Describe patient symptoms or reasons requiring Government Hospital clinician review...'
+                  }
                   value={escalateNote}
                   onChange={(e) => setEscalateNote(e.target.value)}
+                  className="govt-textarea"
                   required
                 />
               </div>
 
               <div className="prototype-notice-box">
-                ℹ️ <em>Submitting will route this case directly into the clinician review queue. The system does not diagnose; medical evaluation is conducted by the clinician.</em>
+                ℹ️ <em>
+                  {lang === 'hi'
+                    ? 'पुष्टि करने पर यह केस सीधे सरकारी डॉक्टर की समीक्षा कतार में दर्ज हो जाएगा।'
+                    : 'Confirming routes this case directly into the official Government Medical Officer review queue under NHM guidelines.'}
+                </em>
               </div>
 
               <div className="modal-actions">
@@ -559,14 +654,16 @@ export default function WorkerDashboard() {
                   onClick={() => setEscalatingFlag(null)}
                   disabled={submittingEscalation}
                 >
-                  Cancel
+                  {lang === 'hi' ? 'रद्द करें' : 'Cancel'}
                 </button>
                 <button
                   type="submit"
-                  className="btn btn-escalate"
+                  className="btn asha-btn-submit-govt"
                   disabled={submittingEscalation}
                 >
-                  {submittingEscalation ? 'Sending Escalation...' : 'Confirm & Escalate to Clinician'}
+                  {submittingEscalation
+                    ? (lang === 'hi' ? 'रेफर किया जा रहा है...' : 'Submitting Referral...')
+                    : (lang === 'hi' ? '🏥 सरकारी अस्पताल व डॉक्टर को रेफर करें' : '🏥 Confirm Referral to Govt Hospital & Doctor')}
                 </button>
               </div>
             </form>

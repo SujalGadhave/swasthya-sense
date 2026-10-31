@@ -32,9 +32,9 @@ export default function SimulatedMessageModal({ patient, onClose }) {
 
     const dueDate = patient.due_date || 'Upcoming';
     if (msgLang === 'hi') {
-      return `नमस्ते। स्वास्थ्या सेंस अनुस्मारक: आपकी नियमित ${patient.cohort?.toUpperCase() || ''} स्वास्थ्य जांच ${dueDate} को देय है। आपकी आशा कार्यकर्ता सुनीता देवी आपसे संपर्क करेंगी। कृपया अपने पिछले पर्चे तैयार रखें। (स्वास्थ्या सेंस प्रोटोटाइप)`;
+      return `नमस्ते। स्वास्थ्या सेंस अनुस्मारक: आपकी नियमित ${patient.cohort?.toUpperCase() || ''} स्वास्थ्य जांच सरकारी प्राथमिक स्वास्थ्य केंद्र (PHC सीतापुर) में ${dueDate} को देय है। सरकारी अस्पताल में डॉक्टर परामर्श व दवाइयां निःशुल्क हैं। आपकी आशा कार्यकर्ता सुनीता देवी आपसे संपर्क करेंगी।`;
     }
-    return `Namaste. Swasthya Sense reminder: Your routine ${patient.cohort?.toUpperCase() || ''} health check-up is scheduled on ${dueDate}. Your ASHA worker Sunita Devi will be in touch. Please keep your previous health records ready. (Swasthya Sense Prototype)`;
+    return `Namaste. Swasthya Sense reminder: Your routine ${patient.cohort?.toUpperCase() || ''} health check-up is scheduled at Govt Primary Health Centre (PHC Sitapur) on ${dueDate}. All consultations & medicines are free under NHM. Your ASHA worker Sunita Devi will assist you.`;
   };
 
   return (
@@ -104,7 +104,7 @@ export default function SimulatedMessageModal({ patient, onClose }) {
                 <span className="wa-back">←</span>
                 <div className="wa-avatar">🌿</div>
                 <div className="wa-contact-info">
-                  <span className="wa-name">Swasthya Sense (PHC Care)</span>
+                  <span className="wa-name">Govt PHC Sitapur (सरकारी अस्पताल)</span>
                   <span className="wa-status">
                     To: {patient.pseudonym} · [Synthetic Contact Token]
                   </span>

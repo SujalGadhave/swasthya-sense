@@ -72,9 +72,9 @@ export default function ClinicianQueue() {
     <div className="page-container">
       <div className="page-header">
         <div>
-          <h2>Clinician Review & Escalation Queue</h2>
+          <h2>🏥 Government Medical Officer Review & Escalation Queue</h2>
           <p className="page-subtitle">
-            Medical Officer Review of High-Risk Flags Escalated by Frontline Workers
+            Primary Health Centre (Govt PHC Sitapur) · Dr. Rajesh Sharma, MBBS (Govt Medical Officer)
           </p>
         </div>
         <button className="btn btn-secondary" onClick={() => fetchQueue(statusFilter)} disabled={loading}>
@@ -289,10 +289,18 @@ export default function ClinicianQueue() {
               <div className="form-group">
                 <label>Clinical Action / Recommended Outcome</label>
                 <select value={outcome} onChange={(e) => setOutcome(e.target.value)}>
-                  <option value="Scheduled In-Clinic Visit">🏥 Scheduled In-Clinic PHC Visit</option>
-                  <option value="Urgent PHC Referral">🚨 Urgent PHC / Hospital Referral</option>
-                  <option value="Adjusted Medication & Home Care">💊 Adjusted Medication & Guided Home Care</option>
-                  <option value="Resolved / Returned to Routine Follow-up">✓ Resolved / Returned to Routine Care</option>
+                  <option value="Scheduled In-Clinic Visit at Govt PHC">
+                    🏥 Scheduled In-Person OPD at Govt PHC Sitapur (सरकारी प्राथमिक स्वास्थ्य केंद्र)
+                  </option>
+                  <option value="Urgent Transfer to Govt CHC / District Hospital">
+                    🚨 Urgent Transfer to Govt CHC / District Hospital (सरकारी जिला अस्पताल रेफरल)
+                  </option>
+                  <option value="Prescribed Govt Formulary Medicines & Home Care">
+                    💊 Prescribed Free Govt NHM Medicines & Guided Home Care (निःशुल्क सरकारी दवाएं)
+                  </option>
+                  <option value="Resolved / Returned to ASHA Routine Follow-up">
+                    ✓ Resolved / Returned to Frontline ASHA Routine Care (आशा फॉलो-अप)
+                  </option>
                 </select>
               </div>
 
