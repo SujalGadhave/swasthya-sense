@@ -119,3 +119,4 @@ export function getLocalizedAgeBand(ageBand, lang = 'hi') {
   }
   return ageBand;
 }
+

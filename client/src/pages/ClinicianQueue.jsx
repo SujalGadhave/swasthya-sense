@@ -3,6 +3,7 @@ import { api } from '../api/api.js';
 import VitalTrendSparkline from '../components/VitalTrendSparkline.jsx';
 import { useLanguage } from '../context/LanguageContext.jsx';
 import { getPatientDisplayName, getLocalizedVillage } from '../utils/patientNames.js';
+import { speakText, stopSpeech } from '../utils/speechHelper.js';
 
 export default function ClinicianQueue() {
   const { lang } = useLanguage();
@@ -12,10 +13,11 @@ export default function ClinicianQueue() {
   const [error, setError] = useState('');
   const [reviewingEscalation, setReviewingEscalation] = useState(null);
   const [clinicianNote, setClinicianNote] = useState('');
-  const [outcome, setOutcome] = useState('Scheduled In-Clinic Visit');
+  const [outcome, setOutcome] = useState('Scheduled In-Clinic Visit at Govt PHC');
   const [actionStatus, setActionStatus] = useState('reviewed');
   const [submitting, setSubmitting] = useState(false);
   const [toastMessage, setToastMessage] = useState('');
+  const [speakingEscId, setSpeakingEscId] = useState(null);
 
   const fetchQueue = async (filter) => {
     setLoading(true);
@@ -37,6 +39,25 @@ export default function ClinicianQueue() {
   const showToast = (msg) => {
     setToastMessage(msg);
     setTimeout(() => setToastMessage(''), 5000);
+  };
+
+  const handleSpeakEscalation = (esc) => {
+    if (speakingEscId === esc.escalation_id) {
+      stopSpeech();
+      setSpeakingEscId(null);
+      return;
+    }
+    stopSpeech();
+    const name = getPatientDisplayName(esc.pseudonym, lang);
+    const vitals = esc.measurements?.systolic && esc.measurements?.diastolic
+      ? `BP ${esc.measurements.systolic}/${esc.measurements.diastolic} mmHg.`
+      : '';
+    const script = lang === 'hi'
+      ? `${name}, नियम ${esc.rule_id} के तहत रेफरल। ${vitals} कार्यकर्ता टिप्पणी: ${esc.check_in_notes || 'समीक्षा अपेक्षित'}`
+      : `Patient ${name}, referred under Rule ${esc.rule_id}. ${vitals} Worker note: ${esc.check_in_notes || 'Review required'}`;
+
+    setSpeakingEscId(esc.escalation_id);
+    speakText(script, lang, () => setSpeakingEscId(null));
   };
 
   const handleOpenReview = (esc) => {
@@ -154,6 +175,15 @@ export default function ClinicianQueue() {
                       <span className="patient-id-tag">
                         <strong>{getPatientDisplayName(esc.pseudonym, lang)}</strong> ({esc.pseudonym})
                       </span>
+                      <button
+                        type="button"
+                        className={`btn-speech-read ${speakingEscId === esc.escalation_id ? 'is-speaking' : ''}`}
+                        onClick={() => handleSpeakEscalation(esc)}
+                        title={lang === 'hi' ? 'आवाज़ में सुनें' : 'Listen audio summary'}
+                        aria-label="Listen audio summary"
+                      >
+                        {speakingEscId === esc.escalation_id ? '⏹️ बंद करें' : '🔊 सुनो'}
+                      </button>
                       <span className="meta-tag tag-cohort">{esc.cohort?.toUpperCase()}</span>
                       <span className="meta-tag tag-location">📍 {getLocalizedVillage(esc.village_or_ward, lang)}</span>
                       <span className="meta-tag tag-age">👤 {esc.age_band}</span>
@@ -280,6 +310,59 @@ export default function ClinicianQueue() {
             </div>
 
             <form onSubmit={handleReviewSubmit} className="clinician-review-form">
+              {/* 1-Tap Standard NHM Protocol Presets for Rapid OPD Triage */}
+              <div className="form-group">
+                <label className="nhm-preset-label">
+                  ⚡ <strong>1-Tap NHM Clinical Presets (Quick Decision):</strong>
+                </label>
+                <div className="quick-action-presets">
+                  <button
+                    type="button"
+                    className="preset-btn preset-admit"
+                    onClick={() => {
+                      setClinicianNote('Admitted to PHC Sitapur observation ward for 24h vital monitoring. Free NHM labs (CBC, urine albumin) ordered.');
+                      setOutcome('Scheduled In-Clinic Visit at Govt PHC');
+                      setActionStatus('action_taken');
+                    }}
+                  >
+                    🏥 Admit to PHC High-Risk Ward
+                  </button>
+                  <button
+                    type="button"
+                    className="preset-btn preset-ambulance"
+                    onClick={() => {
+                      setClinicianNote('Urgent 108 Ambulance transfer to District Hospital Sitapur for specialist obstetric/cardiology care. Patient stabilized.');
+                      setOutcome('Urgent Transfer to Govt CHC / District Hospital');
+                      setActionStatus('action_taken');
+                    }}
+                  >
+                    🚑 Emergency Transfer via 108 to DH
+                  </button>
+                  <button
+                    type="button"
+                    className="preset-btn preset-meds"
+                    onClick={() => {
+                      setClinicianNote('Prescribed essential NHM formulary medication (Tab Amlodipine 5mg / Methyldopa). Instructed ASHA Sunita to re-check BP in 48 hours.');
+                      setOutcome('Prescribed Govt Formulary Medicines & Home Care');
+                      setActionStatus('reviewed');
+                    }}
+                  >
+                    💊 Prescribe NHM Meds & 48h Follow-up
+                  </button>
+                  <button
+                    type="button"
+                    className="preset-btn preset-resolve"
+                    onClick={() => {
+                      setClinicianNote('Vitals and clinical danger signs reviewed and stabilizing. Safe for routine frontline ASHA worker home visits.');
+                      setOutcome('Resolved / Returned to ASHA Routine Follow-up');
+                      setActionStatus('closed');
+                    }}
+                  >
+                    ✓ Resolved: Return to Routine ASHA Care
+                  </button>
+                </div>
+              </div>
+
               <div className="form-group">
                 <label>Clinical Guidance & Review Notes (Required)</label>
                 <textarea

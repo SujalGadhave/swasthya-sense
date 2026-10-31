@@ -239,6 +239,58 @@ export default function SupervisorView() {
           {/* TAB 1: OVERVIEW */}
           {activeTab === 'overview' && (
             <div className="tab-content">
+              {/* National Health Mission (NHM) Performance Scorecard */}
+              <div className="nhm-kpi-scorecard-card">
+                <div className="nhm-scorecard-header">
+                  <div className="nhm-header-title">
+                    <span className="nhm-emblem-badge">🏛️ NHM</span>
+                    <div>
+                      <h3>National Health Mission (NHM) — Public Health Performance Scorecard</h3>
+                      <span className="nhm-subtext">Sitapur Primary Health Centre (PHC) & Sub-Centres • Operational Indicators</span>
+                    </div>
+                  </div>
+                  <span className="nhm-eval-badge">✓ MoHFW Standards Compliant</span>
+                </div>
+
+                <div className="nhm-kpi-grid">
+                  <div className="nhm-kpi-item kpi-positive">
+                    <span className="kpi-label">Follow-Up Compliance Rate</span>
+                    <div className="kpi-value-row">
+                      <strong className="kpi-number">84.6%</strong>
+                      <span className="kpi-benchmark">Target: &ge;80%</span>
+                    </div>
+                    <span className="kpi-desc">Cohort visits completed within protocol grace period</span>
+                  </div>
+
+                  <div className="nhm-kpi-item kpi-focus">
+                    <span className="kpi-label">High-Risk Case Identification</span>
+                    <div className="kpi-value-row">
+                      <strong className="kpi-number">18.5%</strong>
+                      <span className="kpi-benchmark">Expected: 15-20%</span>
+                    </div>
+                    <span className="kpi-desc">Active clinical danger flags (BP, Trend, Danger Signs)</span>
+                  </div>
+
+                  <div className="nhm-kpi-item kpi-positive">
+                    <span className="kpi-label">Average MO Triage Latency</span>
+                    <div className="kpi-value-row">
+                      <strong className="kpi-number">2.4 hrs</strong>
+                      <span className="kpi-benchmark">Standard: &lt;24h</span>
+                    </div>
+                    <span className="kpi-desc">Escalation queue turnaround time by Dr. Rajesh Sharma</span>
+                  </div>
+
+                  <div className="nhm-kpi-item kpi-perfect">
+                    <span className="kpi-label">Privacy & Autonomy Safeguard</span>
+                    <div className="kpi-value-row">
+                      <strong className="kpi-number">100%</strong>
+                      <span className="kpi-benchmark">Mandatory: 100%</span>
+                    </div>
+                    <span className="kpi-desc">0% non-consented dispatches (zero telecommunication breaches)</span>
+                  </div>
+                </div>
+              </div>
+
               <div className="metrics-row">
                 <div className="metric-card metric-total">
                   <span className="metric-num">65</span>

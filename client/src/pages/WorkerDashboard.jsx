@@ -8,6 +8,7 @@ import CheckInForm from './CheckInForm.jsx';
 import SimulatedMessageModal from '../components/SimulatedMessageModal.jsx';
 import OfflineSimulatorModal from '../components/OfflineSimulatorModal.jsx';
 import { getPatientDisplayName, getLocalizedVillage, getLocalizedAgeBand } from '../utils/patientNames.js';
+import { speakText, stopSpeech, getPatientVoicePrompt } from '../utils/speechHelper.js';
 
 export default function WorkerDashboard() {
   const { lang, t } = useLanguage();
@@ -28,6 +29,7 @@ export default function WorkerDashboard() {
   const [simpleMode, setSimpleMode] = useState(true);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [speakingPatientId, setSpeakingPatientId] = useState(null);
   const [selectedPatientForCheckIn, setSelectedPatientForCheckIn] = useState(null);
   const [selectedPatientForMessage, setSelectedPatientForMessage] = useState(null);
   const [escalatingFlag, setEscalatingFlag] = useState(null);
@@ -51,7 +53,22 @@ export default function WorkerDashboard() {
 
   useEffect(() => {
     fetchCallList(filter);
+    return () => {
+      stopSpeech();
+    };
   }, [filter]);
+
+  const handleSpeakPatient = (patient) => {
+    if (speakingPatientId === patient.patient_id) {
+      stopSpeech();
+      setSpeakingPatientId(null);
+      return;
+    }
+    stopSpeech();
+    const script = getPatientVoicePrompt(patient, lang);
+    setSpeakingPatientId(patient.patient_id);
+    speakText(script, lang, () => setSpeakingPatientId(null));
+  };
 
   const showToast = (msg) => {
     setToastMessage(msg);
@@ -395,6 +412,15 @@ export default function WorkerDashboard() {
                           <div className="patient-name-container">
                             <strong className="patient-simple-name">{displayName}</strong>
                             <span className="patient-id-badge">{patient.pseudonym}</span>
+                            <button
+                              type="button"
+                              className={`btn-speech-read ${speakingPatientId === patient.patient_id ? 'is-speaking' : ''}`}
+                              onClick={() => handleSpeakPatient(patient)}
+                              title={lang === 'hi' ? 'आवाज़ में सुनें' : 'Listen audio summary'}
+                              aria-label="Listen audio summary"
+                            >
+                              {speakingPatientId === patient.patient_id ? '⏹️ बंद करें' : '🔊 सुनो'}
+                            </button>
                           </div>
                           <span className="patient-cohort-simple">
                             {patient.cohort === 'antenatal'
@@ -509,6 +535,26 @@ export default function WorkerDashboard() {
                     >
                       🩺 {lang === 'hi' ? 'डॉक्टर को भेजें' : 'Send to Doctor'}
                     </button>
+                  )}
+
+                  {/* If patient has acute danger flag, prominent 108 Emergency Ambulance dial button */}
+                  {patient.flags?.some(
+                    (f) => f.type === 'clinical' && (f.severity === 'urgent' || f.rule_id === 'R6')
+                  ) && (
+                    <a
+                      href="tel:108"
+                      className="btn btn-emergency-108 asha-btn-108"
+                      onClick={() => {
+                        showToast(
+                          lang === 'hi'
+                            ? `🚑 108 आपातकालीन एम्बुलेंस सेवा डायल की जा रही है (${displayName})`
+                            : `🚑 Dialing 108 Emergency Ambulance for ${displayName}`
+                        );
+                      }}
+                      title="108 Free Emergency Ambulance (NHM Govt Service)"
+                    >
+                      🚑 {lang === 'hi' ? '108 एम्बुलेंस' : 'Dial 108'}
+                    </a>
                   )}
 
                   {!simpleMode && (
