@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { api } from '../api/api.js';
+import VitalTrendSparkline from '../components/VitalTrendSparkline.jsx';
 
 export default function ClinicianQueue() {
   const [queue, setQueue] = useState([]);
@@ -171,15 +172,24 @@ export default function ClinicianQueue() {
                     <span className="severity-tag severity-urgent">Severity: {esc.flag_severity}</span>
                   </div>
 
-                  {/* Triggering values breakdown */}
-                  <div className="triggering-summary">
-                    <span>Trigger inputs: </span>
-                    {Object.entries(trigVals).map(([k, v]) => (
-                      <span key={k} className="value-chip">
-                        {k}: {Array.isArray(v) ? v.join(', ') : String(v)}
-                      </span>
-                    ))}
-                  </div>
+                  {/* Triggering values breakdown / Visual trend */}
+                  {Array.isArray(trigVals.systolicTrend) && trigVals.systolicTrend.length >= 2 ? (
+                    <VitalTrendSparkline
+                      readings={trigVals.systolicTrend}
+                      threshold={140}
+                      unit="mmHg"
+                      label="Systolic BP"
+                    />
+                  ) : (
+                    <div className="triggering-summary">
+                      <span>Trigger inputs: </span>
+                      {Object.entries(trigVals).map(([k, v]) => (
+                        <span key={k} className="value-chip">
+                          {k}: {Array.isArray(v) ? v.join(', ') : String(v)}
+                        </span>
+                      ))}
+                    </div>
+                  )}
 
                   {/* Check-in Vitals & Symptoms */}
                   <div className="vitals-context-grid">

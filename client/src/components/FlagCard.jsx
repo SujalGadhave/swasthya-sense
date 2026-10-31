@@ -1,23 +1,31 @@
 import React from 'react';
+import VitalTrendSparkline from './VitalTrendSparkline.jsx';
+import { useLanguage } from '../context/LanguageContext.jsx';
 
 /**
  * FlagCard component
  * Renders transparent explainable risk flags with strict visual separation
- * between administrative reminders (grey) and clinical alerts (red).
+ * between administrative reminders (grey) and clinical alerts (red),
+ * with inline SVG sparkline visualization for trend rules (R5).
  */
 export default function FlagCard({ flag, onEscalate, onAcknowledge, isWorker = false }) {
+  const { lang, t } = useLanguage();
   const isClinical = flag.type === 'clinical';
   const isUrgent = flag.severity === 'urgent';
   const values = typeof flag.triggering_values === 'string'
     ? JSON.parse(flag.triggering_values)
     : (flag.triggering_values || {});
 
+  const hasTrendData = Array.isArray(values.systolicTrend) && values.systolicTrend.length >= 2;
+
   return (
     <div className={`flag-card ${isClinical ? 'flag-clinical' : 'flag-reminder'} ${isUrgent ? 'flag-urgent' : ''}`}>
       <div className="flag-header">
         <div className="flag-tags">
           <span className={`flag-badge ${isClinical ? 'badge-clinical' : 'badge-reminder'}`}>
-            {isClinical ? '🚨 Clinical Alert' : '📅 Administrative Reminder'}
+            {isClinical
+              ? (lang === 'hi' ? '🚨 चिकित्सा अलर्ट' : '🚨 Clinical Alert')
+              : (lang === 'hi' ? '📅 प्रशासनिक अनुस्मारक' : '📅 Administrative Reminder')}
           </span>
           <span className="flag-rule-id">Rule {flag.rule_id}</span>
           <span className={`severity-tag severity-${flag.severity || 'info'}`}>
@@ -36,8 +44,18 @@ export default function FlagCard({ flag, onEscalate, onAcknowledge, isWorker = f
           {flag.explanation || flag.description || 'Flagged for clinician review based on protocol threshold.'}
         </p>
 
+        {/* Visual Trendline Sparkline for Rising Trend Rule R5 */}
+        {hasTrendData && (
+          <VitalTrendSparkline
+            readings={values.systolicTrend}
+            threshold={140}
+            unit="mmHg"
+            label="Systolic BP"
+          />
+        )}
+
         {/* Triggering values breakdown */}
-        {Object.keys(values).length > 0 && (
+        {Object.keys(values).length > 0 && !hasTrendData && (
           <div className="triggering-values">
             <span className="values-label">Triggering inputs:</span>
             <div className="values-chips">
@@ -51,7 +69,7 @@ export default function FlagCard({ flag, onEscalate, onAcknowledge, isWorker = f
         )}
 
         <div className="flag-disclaimer">
-          ⚠️ <em>Prototype — Flagged for clinician review. Thresholds illustrative only.</em>
+          {t('disclaimer_flag_text')}
         </div>
       </div>
 
@@ -63,7 +81,7 @@ export default function FlagCard({ flag, onEscalate, onAcknowledge, isWorker = f
             className="btn btn-escalate"
             onClick={() => onEscalate(flag)}
           >
-            ↗ Escalate to Clinician
+            {t('escalate_btn')}
           </button>
         )}
 
@@ -73,11 +91,10 @@ export default function FlagCard({ flag, onEscalate, onAcknowledge, isWorker = f
             className="btn btn-acknowledge"
             onClick={() => onAcknowledge(flag.id)}
           >
-            ✓ Mark Acknowledged
+            {t('acknowledge_btn')}
           </button>
         )}
       </div>
     </div>
   );
 }
-

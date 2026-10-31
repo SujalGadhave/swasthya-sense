@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { api } from '../api/api.js';
 import FlagCard from '../components/FlagCard.jsx';
+import VitalTrendSparkline from '../components/VitalTrendSparkline.jsx';
 
 export default function PatientDetail() {
   const { id } = useParams();
@@ -61,6 +62,18 @@ export default function PatientDetail() {
   }
 
   const { patient, checkIns = [], flags = [] } = data;
+
+  // Extract chronological systolic blood pressure history for visual sparkline
+  const systolicHistory = checkIns
+    .filter((ci) => {
+      const m = typeof ci.measurements === 'string' ? JSON.parse(ci.measurements || '{}') : (ci.measurements || {});
+      return m.systolic !== undefined && !isNaN(Number(m.systolic));
+    })
+    .map((ci) => {
+      const m = typeof ci.measurements === 'string' ? JSON.parse(ci.measurements || '{}') : (ci.measurements || {});
+      return Number(m.systolic);
+    })
+    .reverse();
 
   return (
     <div className="page-container">
@@ -126,6 +139,18 @@ export default function PatientDetail() {
       {/* Visit Timeline */}
       <div className="content-card">
         <h3>Completed Follow-Up Check-In Timeline ({checkIns.length})</h3>
+
+        {systolicHistory.length >= 2 && (
+          <div className="patient-detail-trend-box">
+            <VitalTrendSparkline
+              readings={systolicHistory}
+              threshold={140}
+              unit="mmHg"
+              label="Historical Systolic Blood Pressure"
+            />
+          </div>
+        )}
+
         {checkIns.length === 0 ? (
           <p className="text-muted">No completed check-in visits recorded yet.</p>
         ) : (
