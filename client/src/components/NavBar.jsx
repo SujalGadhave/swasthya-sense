@@ -3,11 +3,13 @@ import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext.jsx';
 import { useLanguage } from '../context/LanguageContext.jsx';
 import { useOffline } from '../context/OfflineContext.jsx';
+import { useTheme } from '../context/ThemeContext.jsx';
 
 export default function NavBar() {
   const { user, logout, login } = useAuth();
   const { lang, setLang, t } = useLanguage();
   const { isOffline, toggleOffline, queueCount, openSimulator } = useOffline();
+  const { theme, toggleTheme } = useTheme();
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -130,6 +132,18 @@ export default function NavBar() {
               हिंदी
             </button>
           </div>
+
+          {/* Modern Dark/Light Mode Switcher */}
+          <button
+            type="button"
+            className="theme-toggle-btn"
+            onClick={toggleTheme}
+            title={theme === 'dark' ? (lang === 'hi' ? 'लाइट मोड चालू करें' : 'Switch to Light Mode') : (lang === 'hi' ? 'डार्क मोड चालू करें' : 'Switch to Dark Mode')}
+            aria-label="Toggle Theme"
+          >
+            <span className="theme-toggle-icon">{theme === 'dark' ? '☀️' : '🌙'}</span>
+            <span className="theme-toggle-label">{theme === 'dark' ? (lang === 'hi' ? 'लाइट' : 'Light') : (lang === 'hi' ? 'डार्क' : 'Dark')}</span>
+          </button>
 
           {/* Quick Demo Persona Switcher */}
           <div className="persona-switcher">

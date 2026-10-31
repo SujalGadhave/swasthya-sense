@@ -6,12 +6,17 @@
 :root {
   --color-primary: #1e3a8a;       /* Deep clinical navy */
   --color-primary-hover: #172554;
+  --color-primary-light: #eff6ff;
   --color-secondary: #475569;
   --color-bg: #f8fafc;
   --color-card-bg: #ffffff;
+  --color-card-subtle: #f1f5f9;
+  --color-nav-bg: rgba(255, 255, 255, 0.94);
   --color-text-main: #0f172a;
   --color-text-muted: #64748b;
   --color-border: #e2e8f0;
+  --color-border-subtle: #f1f5f9;
+  --color-input-bg: #ffffff;
 
   /* Alert & Status Palette */
   --color-clinical-red: #dc2626;
@@ -31,12 +36,49 @@
   --color-success-border: #a7f3d0;
 
   --font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-  --radius-sm: 4px;
-  --radius-md: 8px;
-  --radius-lg: 12px;
-  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
-  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
-  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
+  --shadow-sm: 0 1px 3px 0 rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.08), 0 2px 4px -2px rgba(0, 0, 0, 0.06);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.08), 0 4px 6px -4px rgba(0, 0, 0, 0.04);
+}
+
+[data-theme="dark"] {
+  --color-primary: #38bdf8;       /* Luminous clinical sky-blue */
+  --color-primary-hover: #7dd3fc;
+  --color-primary-light: rgba(56, 189, 248, 0.12);
+  --color-secondary: #94a3b8;
+  --color-bg: #090e17;             /* Deepest hospital night-slate */
+  --color-card-bg: #131d2e;        /* Clean elevated slate card */
+  --color-card-subtle: #1a273e;
+  --color-nav-bg: rgba(19, 29, 46, 0.94);
+  --color-text-main: #f1f5f9;
+  --color-text-muted: #94a3b8;
+  --color-border: #24354f;
+  --color-border-subtle: #1c2b42;
+  --color-input-bg: #0d1524;
+
+  /* Alert & Status Palette */
+  --color-clinical-red: #f87171;
+  --color-clinical-bg: rgba(239, 68, 68, 0.14);
+  --color-clinical-border: rgba(239, 68, 68, 0.4);
+
+  --color-reminder-grey: #cbd5e1;
+  --color-reminder-bg: #1a273e;
+  --color-reminder-border: #334a6d;
+
+  --color-warning-amber: #fbbf24;
+  --color-warning-bg: rgba(245, 158, 11, 0.14);
+  --color-warning-border: rgba(245, 158, 11, 0.4);
+
+  --color-success-green: #34d399;
+  --color-success-bg: rgba(16, 185, 129, 0.14);
+  --color-success-border: rgba(16, 185, 129, 0.4);
+
+  --shadow-sm: 0 1px 3px 0 rgba(0, 0, 0, 0.4);
+  --shadow-md: 0 4px 10px -1px rgba(0, 0, 0, 0.5), 0 2px 4px -2px rgba(0, 0, 0, 0.4);
+  --shadow-lg: 0 14px 25px -4px rgba(0, 0, 0, 0.6), 0 6px 10px -4px rgba(0, 0, 0, 0.5);
 }
 
 *, *::before, *::after {
@@ -51,6 +93,7 @@ body {
   color: var(--color-text-main);
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
+  transition: background-color 0.25s ease, color 0.25s ease;
 }
 
 /* ============================================================
@@ -64,6 +107,13 @@ body {
   text-align: center;
   padding: 0.4rem 1rem;
   border-bottom: 1px solid #fde047;
+  transition: background-color 0.25s ease;
+}
+
+[data-theme="dark"] .safety-banner {
+  background-color: #3b2806;
+  color: #fef08a;
+  border-bottom: 1px solid #713f12;
 }
 
 /* ============================================================
@@ -73,8 +123,12 @@ body {
   position: sticky;
   top: 0;
   z-index: 100;
-  background-color: #ffffff;
+  background-color: var(--color-nav-bg);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--color-border);
   box-shadow: var(--shadow-sm);
+  transition: background-color 0.25s ease, border-color 0.25s ease;
 }
 
 .navbar {
@@ -177,6 +231,39 @@ body {
   color: #ffffff;
   font-weight: 700;
   box-shadow: 0 1px 3px rgba(5, 150, 105, 0.35);
+}
+
+/* Modern Dark/Light Theme Switcher Button */
+.theme-toggle-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  background: var(--color-card-subtle);
+  color: var(--color-text-main);
+  border: 1.5px solid var(--color-border);
+  padding: 0.32rem 0.65rem;
+  border-radius: 9999px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  line-height: 1;
+}
+
+.theme-toggle-btn:hover {
+  background: var(--color-primary-light);
+  border-color: var(--color-primary);
+  transform: translateY(-1px);
+}
+
+.theme-toggle-icon {
+  font-size: 0.92rem;
+  display: inline-block;
+}
+
+.theme-toggle-label {
+  font-size: 0.78rem;
+  font-weight: 700;
 }
 
 .lang-toggle-btn {
@@ -3382,3 +3469,703 @@ body {
 .asha-btn-submit-govt:hover:not(:disabled) {
   background: #b91c1c;
 }
+
+/* ============================================================
+   SWASTHYA SENSE — COMPLETE LUXURY DARK MODE STYLESYSTEM
+   Optimized for Clinical Night Shifts, High-Contrast Visibility,
+   and Modern Healthcare Executive Aesthetics
+   ============================================================ */
+
+[data-theme="dark"] {
+  color-scheme: dark;
+}
+
+/* 1. Global & Page Containers */
+[data-theme="dark"] .page-container {
+  color: var(--color-text-main);
+}
+
+[data-theme="dark"] .page-header h2 {
+  color: #f8fafc;
+}
+
+[data-theme="dark"] .page-subtitle {
+  color: #94a3b8;
+}
+
+[data-theme="dark"] .brand-title {
+  color: #38bdf8;
+}
+
+[data-theme="dark"] .brand-subtitle {
+  color: #94a3b8;
+}
+
+[data-theme="dark"] .nav-link {
+  color: #cbd5e1;
+}
+
+[data-theme="dark"] .nav-link:hover,
+[data-theme="dark"] .nav-link.active {
+  color: #38bdf8;
+  background-color: rgba(56, 189, 248, 0.12);
+}
+
+/* 2. Top Banner & Navbar Controls */
+[data-theme="dark"] .navbar-container {
+  background-color: var(--color-nav-bg);
+  border-bottom-color: #1e293b;
+  box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.4);
+}
+
+[data-theme="dark"] .language-selector-pills {
+  background: #0d1524;
+  border-color: #24354f;
+}
+
+[data-theme="dark"] .lang-pill-btn {
+  color: #94a3b8;
+}
+
+[data-theme="dark"] .lang-pill-btn:hover:not(.active-lang) {
+  background: #1e293b;
+  color: #f8fafc;
+}
+
+[data-theme="dark"] .theme-toggle-btn {
+  background: #0d1524;
+  border-color: #24354f;
+  color: #f1f5f9;
+}
+
+[data-theme="dark"] .theme-toggle-btn:hover {
+  background: rgba(56, 189, 248, 0.15);
+  border-color: #38bdf8;
+}
+
+[data-theme="dark"] .persona-switcher {
+  background: #0d1524;
+  border-color: #24354f;
+}
+
+[data-theme="dark"] .persona-label {
+  color: #94a3b8;
+}
+
+[data-theme="dark"] .persona-btn {
+  background: #131d2e;
+  border-color: #24354f;
+  color: #cbd5e1;
+}
+
+[data-theme="dark"] .persona-btn:hover {
+  background: #1e293b;
+  color: #ffffff;
+}
+
+[data-theme="dark"] .persona-btn.current {
+  background: #38bdf8;
+  color: #0b1120;
+  border-color: #38bdf8;
+  font-weight: 800;
+}
+
+[data-theme="dark"] .user-badge {
+  background: rgba(56, 189, 248, 0.12);
+  color: #38bdf8;
+  border: 1px solid rgba(56, 189, 248, 0.25);
+}
+
+[data-theme="dark"] .btn-logout {
+  color: #cbd5e1;
+  border-color: #24354f;
+}
+
+[data-theme="dark"] .btn-logout:hover {
+  background: rgba(239, 68, 68, 0.15);
+  color: #f87171;
+  border-color: rgba(239, 68, 68, 0.4);
+}
+
+/* 3. Rural Simulator & Network Controls */
+[data-theme="dark"] .btn-sim-launcher {
+  background: rgba(14, 165, 233, 0.15);
+  color: #38bdf8;
+  border-color: rgba(56, 189, 248, 0.35);
+}
+
+[data-theme="dark"] .btn-net-online {
+  background: rgba(16, 185, 129, 0.15);
+  color: #34d399;
+  border-color: rgba(52, 211, 153, 0.35);
+}
+
+[data-theme="dark"] .btn-net-offline {
+  background: rgba(239, 68, 68, 0.15);
+  color: #f87171;
+  border-color: rgba(239, 68, 68, 0.35);
+}
+
+/* 4. ASHA Welcome Banner & Mode Switcher */
+[data-theme="dark"] .asha-welcome-banner {
+  background: linear-gradient(135deg, rgba(6, 78, 59, 0.4) 0%, rgba(19, 29, 46, 0.95) 100%);
+  border-color: rgba(52, 211, 153, 0.3);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+}
+
+[data-theme="dark"] .asha-greeting-text {
+  color: #34d399;
+}
+
+[data-theme="dark"] .asha-location-tag {
+  color: #a7f3d0;
+}
+
+[data-theme="dark"] .asha-mode-switch-container {
+  background: #0d1524;
+  border-color: #24354f;
+}
+
+[data-theme="dark"] .asha-mode-btn {
+  color: #94a3b8;
+}
+
+[data-theme="dark"] .asha-mode-btn.active-detailed {
+  background: #334155;
+  color: #f8fafc;
+}
+
+/* 5. Simple ASHA Action Buckets ("आज का काम") */
+[data-theme="dark"] .card-urgent-bucket {
+  background: linear-gradient(145deg, rgba(239, 68, 68, 0.16) 0%, #131d2e 100%);
+  border-color: rgba(239, 68, 68, 0.45);
+  color: #fca5a5;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+}
+
+[data-theme="dark"] .card-urgent-bucket .priority-title,
+[data-theme="dark"] .card-urgent-bucket .priority-big-number {
+  color: #fecaca;
+}
+
+[data-theme="dark"] .card-urgent-bucket.active-filter {
+  border-color: #ef4444;
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.35);
+  background: linear-gradient(145deg, rgba(239, 68, 68, 0.28) 0%, #172338 100%);
+}
+
+[data-theme="dark"] .card-overdue-bucket {
+  background: linear-gradient(145deg, rgba(245, 158, 11, 0.16) 0%, #131d2e 100%);
+  border-color: rgba(245, 158, 11, 0.45);
+  color: #fde68a;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+}
+
+[data-theme="dark"] .card-overdue-bucket .priority-title,
+[data-theme="dark"] .card-overdue-bucket .priority-big-number {
+  color: #fef08a;
+}
+
+[data-theme="dark"] .card-overdue-bucket.active-filter {
+  border-color: #f59e0b;
+  box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.35);
+  background: linear-gradient(145deg, rgba(245, 158, 11, 0.28) 0%, #172338 100%);
+}
+
+[data-theme="dark"] .card-routine-bucket {
+  background: linear-gradient(145deg, rgba(16, 185, 129, 0.16) 0%, #131d2e 100%);
+  border-color: rgba(16, 185, 129, 0.45);
+  color: #a7f3d0;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+}
+
+[data-theme="dark"] .card-routine-bucket .priority-title,
+[data-theme="dark"] .card-routine-bucket .priority-big-number {
+  color: #6ee7b7;
+}
+
+[data-theme="dark"] .card-routine-bucket.active-filter {
+  border-color: #10b981;
+  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.35);
+  background: linear-gradient(145deg, rgba(16, 185, 129, 0.28) 0%, #172338 100%);
+}
+
+/* 6. Filter Bars & Chips */
+[data-theme="dark"] .filter-bar {
+  background: #131d2e;
+  border-color: #24354f;
+}
+
+[data-theme="dark"] .filter-chip {
+  background: #0d1524;
+  border-color: #24354f;
+  color: #94a3b8;
+}
+
+[data-theme="dark"] .filter-chip:hover {
+  background: #1e293b;
+  color: #f1f5f9;
+}
+
+[data-theme="dark"] .filter-chip.active {
+  background: #38bdf8;
+  color: #0b1120;
+  border-color: #38bdf8;
+  font-weight: 800;
+}
+
+[data-theme="dark"] .filter-chip.chip-concerning.active {
+  background: #ef4444;
+  color: #ffffff;
+  border-color: #ef4444;
+}
+
+[data-theme="dark"] .filter-chip.chip-overdue.active {
+  background: #f59e0b;
+  color: #0b1120;
+  border-color: #f59e0b;
+}
+
+[data-theme="dark"] .search-input {
+  background: #0d1524;
+  border-color: #24354f;
+  color: #f1f5f9;
+}
+
+/* 7. Patient Cards & Metadata */
+[data-theme="dark"] .patient-call-card {
+  background: #131d2e;
+  border-color: #24354f;
+  border-left-color: #475569;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+}
+
+[data-theme="dark"] .patient-call-card:hover {
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.35);
+  border-color: #334a6d;
+}
+
+[data-theme="dark"] .patient-call-card.card-clinical-alert {
+  border-left-color: #ef4444;
+  background: linear-gradient(180deg, rgba(239, 68, 68, 0.08) 0%, #131d2e 100%);
+}
+
+[data-theme="dark"] .patient-call-card.card-overdue {
+  border-left-color: #f59e0b;
+  background: linear-gradient(180deg, rgba(245, 158, 11, 0.08) 0%, #131d2e 100%);
+}
+
+[data-theme="dark"] .patient-simple-name {
+  color: #f8fafc;
+}
+
+[data-theme="dark"] .cohort-avatar-circle {
+  background: #0d1524;
+  border: 1px solid #24354f;
+}
+
+[data-theme="dark"] .patient-id-badge {
+  background: #0d1524;
+  color: #94a3b8;
+  border-color: #24354f;
+}
+
+[data-theme="dark"] .meta-tag {
+  background: #0d1524;
+  color: #cbd5e1;
+  border: 1px solid #24354f;
+}
+
+[data-theme="dark"] .tag-cohort {
+  background: rgba(56, 189, 248, 0.15);
+  color: #38bdf8;
+  border-color: rgba(56, 189, 248, 0.3);
+}
+
+[data-theme="dark"] .call-card-actions {
+  border-top-color: #1e293b;
+}
+
+[data-theme="dark"] .btn-secondary {
+  background: #1e293b;
+  color: #f1f5f9;
+  border-color: #334155;
+}
+
+[data-theme="dark"] .btn-secondary:hover {
+  background: #334155;
+}
+
+[data-theme="dark"] .btn-outline {
+  border-color: #38bdf8;
+  color: #38bdf8;
+  background: transparent;
+}
+
+[data-theme="dark"] .btn-outline:hover {
+  background: rgba(56, 189, 248, 0.15);
+}
+
+[data-theme="dark"] .asha-btn-call {
+  background: rgba(56, 189, 248, 0.12);
+  color: #38bdf8;
+  border-color: rgba(56, 189, 248, 0.3);
+}
+
+[data-theme="dark"] .asha-btn-msg {
+  background: rgba(16, 185, 129, 0.12);
+  color: #34d399;
+  border-color: rgba(52, 211, 153, 0.3);
+}
+
+[data-theme="dark"] .escalation-status-banner {
+  background: rgba(236, 72, 153, 0.14);
+  border-color: rgba(236, 72, 153, 0.35);
+  color: #f472b6;
+}
+
+/* 8. Flags & Vital Trendline Sparklines */
+[data-theme="dark"] .flag-card {
+  background: #1a273e;
+  border-color: #24354f;
+}
+
+[data-theme="dark"] .flag-card.flag-clinical {
+  background: rgba(239, 68, 68, 0.1);
+  border-color: rgba(239, 68, 68, 0.35);
+  color: #fca5a5;
+}
+
+[data-theme="dark"] .flag-card.flag-reminder {
+  background: #1a273e;
+  border-color: #334a6d;
+  color: #cbd5e1;
+}
+
+[data-theme="dark"] .flag-explanation {
+  color: #f1f5f9;
+}
+
+[data-theme="dark"] .sparkline-container {
+  background: #0d1524;
+  border-color: #24354f;
+}
+
+[data-theme="dark"] .sparkline-title {
+  color: #f1f5f9;
+}
+
+[data-theme="dark"] .asha-action-guidance {
+  background: rgba(16, 185, 129, 0.12);
+  border-color: rgba(52, 211, 153, 0.3);
+  color: #e2e8f0;
+}
+
+[data-theme="dark"] .asha-action-guidance.action-urgent {
+  background: rgba(239, 68, 68, 0.14);
+  border-color: rgba(248, 113, 113, 0.35);
+  color: #fecaca;
+}
+
+[data-theme="dark"] .triggering-values {
+  background: #0d1524;
+  border-color: #24354f;
+}
+
+[data-theme="dark"] .value-chip {
+  background: #131d2e;
+  color: #cbd5e1;
+  border-color: #24354f;
+}
+
+/* 9. Modals & Check-In Form */
+[data-theme="dark"] .modal-overlay {
+  background: rgba(0, 0, 0, 0.78);
+  backdrop-filter: blur(6px);
+}
+
+[data-theme="dark"] .modal-container {
+  background: #131d2e;
+  border-color: #24354f;
+  color: #f1f5f9;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.75);
+}
+
+[data-theme="dark"] .modal-header {
+  border-bottom-color: #24354f;
+}
+
+[data-theme="dark"] .modal-header h3 {
+  color: #f8fafc;
+}
+
+[data-theme="dark"] .btn-close {
+  background: #1e293b;
+  color: #94a3b8;
+  border-color: #334155;
+}
+
+[data-theme="dark"] .btn-close:hover {
+  background: #ef4444;
+  color: #ffffff;
+}
+
+[data-theme="dark"] .channel-pill-btn {
+  background: #0d1524;
+  border-color: #24354f;
+  color: #94a3b8;
+}
+
+[data-theme="dark"] .channel-pill-btn.active {
+  background: #059669;
+  color: #ffffff;
+  border-color: #059669;
+}
+
+[data-theme="dark"] .danger-touch-card {
+  background: #0d1524;
+  border-color: #24354f;
+  color: #f1f5f9;
+}
+
+[data-theme="dark"] .danger-touch-card.selected-danger {
+  background: rgba(239, 68, 68, 0.22);
+  border-color: #ef4444;
+  color: #fee2e2;
+  box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.35);
+}
+
+[data-theme="dark"] .vitals-group-box {
+  background: #0d1524;
+  border-color: #24354f;
+}
+
+[data-theme="dark"] .vital-input-card {
+  background: #131d2e;
+  border-color: #24354f;
+}
+
+[data-theme="dark"] .vital-large-input {
+  background: #090e17;
+  color: #f8fafc;
+  border-color: #334a6d;
+}
+
+[data-theme="dark"] .observation-pill-btn {
+  background: #0d1524;
+  border-color: #24354f;
+  color: #cbd5e1;
+}
+
+[data-theme="dark"] .observation-pill-btn:hover {
+  background: #1e293b;
+  color: #ffffff;
+}
+
+[data-theme="dark"] .govt-select-input,
+[data-theme="dark"] .govt-textarea {
+  background: #0d1524;
+  border-color: #24354f;
+  color: #f8fafc;
+}
+
+[data-theme="dark"] .govt-doctor-card {
+  background: #0d1524;
+  border-color: #24354f;
+}
+
+[data-theme="dark"] .referral-pill {
+  background: #0d1524;
+  border-color: #24354f;
+  color: #cbd5e1;
+}
+
+[data-theme="dark"] .referral-pill:hover {
+  background: rgba(239, 68, 68, 0.18);
+  border-color: #ef4444;
+  color: #fca5a5;
+}
+
+[data-theme="dark"] .nhm-assurance-banner {
+  background: rgba(56, 189, 248, 0.1);
+  border-color: rgba(56, 189, 248, 0.3);
+  color: #e0f2fe;
+}
+
+/* 10. Clinician Queue (Doctor Persona) */
+[data-theme="dark"] .queue-card {
+  background: #131d2e;
+  border-color: #24354f;
+}
+
+[data-theme="dark"] .queue-card.card-pending-review {
+  border-left-color: #f87171;
+}
+
+[data-theme="dark"] .queue-card.card-reviewed {
+  border-left-color: #34d399;
+}
+
+[data-theme="dark"] .queue-evidence-box {
+  background: #0d1524;
+  border-color: #24354f;
+}
+
+[data-theme="dark"] .vital-context-item {
+  background: #131d2e;
+  border-color: #24354f;
+}
+
+[data-theme="dark"] .vital-context-item .vital-label {
+  color: #94a3b8;
+}
+
+[data-theme="dark"] .vital-context-item .vital-val {
+  color: #f8fafc;
+}
+
+[data-theme="dark"] .symptoms-context {
+  background: rgba(239, 68, 68, 0.12);
+  border-color: rgba(239, 68, 68, 0.3);
+  color: #fca5a5;
+}
+
+[data-theme="dark"] .worker-notes-quote {
+  background: #131d2e;
+  border-left-color: #38bdf8;
+  color: #cbd5e1;
+}
+
+[data-theme="dark"] .clinician-notes-box {
+  background: rgba(56, 189, 248, 0.08);
+  border-color: rgba(56, 189, 248, 0.25);
+}
+
+[data-theme="dark"] .clinician-note-text {
+  color: #e2e8f0;
+}
+
+[data-theme="dark"] .nhm-preset-label {
+  color: #cbd5e1;
+}
+
+/* 11. Supervisor Scorecard & Tables */
+[data-theme="dark"] .nhm-kpi-scorecard-card {
+  background: #131d2e;
+  border-color: #24354f;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+}
+
+[data-theme="dark"] .nhm-scorecard-header {
+  border-bottom-color: #24354f;
+}
+
+[data-theme="dark"] .nhm-scorecard-header h3 {
+  color: #f8fafc;
+}
+
+[data-theme="dark"] .nhm-emblem-badge {
+  background: #0d1524;
+  border-color: #24354f;
+}
+
+[data-theme="dark"] .nhm-kpi-item {
+  background: #0d1524;
+  border-color: #24354f;
+}
+
+[data-theme="dark"] .kpi-label {
+  color: #94a3b8;
+}
+
+[data-theme="dark"] .kpi-number {
+  color: #f8fafc;
+}
+
+[data-theme="dark"] .content-card {
+  background: #131d2e;
+  border-color: #24354f;
+}
+
+[data-theme="dark"] .content-card h3 {
+  color: #f8fafc;
+}
+
+[data-theme="dark"] .content-card p {
+  color: #cbd5e1;
+}
+
+[data-theme="dark"] .metric-card {
+  background: #131d2e;
+  border-color: #24354f;
+}
+
+[data-theme="dark"] .data-table {
+  background: #131d2e;
+}
+
+[data-theme="dark"] .data-table th {
+  background: #0d1524;
+  color: #94a3b8;
+  border-bottom-color: #24354f;
+}
+
+[data-theme="dark"] .data-table td {
+  border-bottom-color: #1c2b42;
+  color: #e2e8f0;
+}
+
+[data-theme="dark"] .data-table tbody tr:hover {
+  background: rgba(36, 53, 79, 0.4);
+}
+
+[data-theme="dark"] .tab-navigation {
+  border-bottom-color: #24354f;
+}
+
+[data-theme="dark"] .tab-btn {
+  color: #94a3b8;
+}
+
+[data-theme="dark"] .tab-btn:hover {
+  color: #38bdf8;
+}
+
+[data-theme="dark"] .tab-btn.active {
+  color: #38bdf8;
+  border-bottom-color: #38bdf8;
+}
+
+/* 12. Login Page & Extras */
+[data-theme="dark"] .login-container {
+  background: var(--color-bg);
+}
+
+[data-theme="dark"] .login-card {
+  background: #131d2e;
+  border-color: #24354f;
+  box-shadow: 0 20px 45px rgba(0, 0, 0, 0.6);
+}
+
+[data-theme="dark"] .login-header h2 {
+  color: #f8fafc;
+}
+
+[data-theme="dark"] .demo-persona-card {
+  background: #0d1524;
+  border-color: #24354f;
+}
+
+[data-theme="dark"] .demo-persona-card:hover {
+  border-color: #38bdf8;
+  background: #1a273e;
+}
+
+[data-theme="dark"] .persona-name {
+  color: #f1f5f9;
+}
+
+[data-theme="dark"] .persona-desc {
+  color: #94a3b8;
+}
+

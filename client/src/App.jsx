@@ -3,6 +3,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext.jsx';
 import { LanguageProvider } from './context/LanguageContext.jsx';
 import { OfflineProvider } from './context/OfflineContext.jsx';
+import { ThemeProvider } from './context/ThemeContext.jsx';
 import NavBar from './components/NavBar.jsx';
 
 import Login from './pages/Login.jsx';
@@ -60,12 +61,13 @@ function HomeRedirect() {
 
 export default function App() {
   return (
-    <LanguageProvider>
-      <AuthProvider>
-        <OfflineProvider>
-          <BrowserRouter>
-            <NavBar />
-            <main>
+    <ThemeProvider>
+      <LanguageProvider>
+        <AuthProvider>
+          <OfflineProvider>
+            <BrowserRouter>
+              <NavBar />
+              <main>
             <Routes>
               <Route path="/login" element={<Login />} />
               <Route path="/" element={<HomeRedirect />} />
@@ -140,5 +142,6 @@ export default function App() {
         </OfflineProvider>
       </AuthProvider>
     </LanguageProvider>
+    </ThemeProvider>
   );
 }
