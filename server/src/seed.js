@@ -1,13 +1,18 @@
+import path from 'path';
+import { fileURLToPath } from 'url';
 import bcrypt from 'bcryptjs';
 import crypto from 'crypto';
 import { initDb, getPool } from './db/db.js';
 import { runOverdueCheck } from './jobs/overdueCheck.js';
 import { logAudit } from './middleware/logAudit.js';
 
-async function seed() {
+export async function runSeed({ pool: passedPool, exitOnComplete = false } = {}) {
   console.log('[Seed] Starting deterministic synthetic database seed...');
-  await initDb();
-  const pool = getPool();
+  let pool = passedPool;
+  if (!pool) {
+    await initDb();
+    pool = getPool();
+  }
 
   // Clear existing data cleanly in reverse FK dependency order
   const tables = [
@@ -347,11 +352,18 @@ async function seed() {
   });
 
   console.log('[Seed] Synthetic database seeded successfully with all edge cases verified.');
-  process.exit(0);
+  if (exitOnComplete) {
+    process.exit(0);
+  }
+  return true;
 }
 
-seed().catch(err => {
-  console.error('[Seed Error]', err);
-  process.exit(1);
-});
+// Auto-run if executed directly as a script
+const __currentFile = fileURLToPath(import.meta.url);
+if (process.argv[1] && path.resolve(process.argv[1]) === path.resolve(__currentFile)) {
+  runSeed({ exitOnComplete: true }).catch(err => {
+    console.error('[Seed Error]', err);
+    process.exit(1);
+  });
+}
 

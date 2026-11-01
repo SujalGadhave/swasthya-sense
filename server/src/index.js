@@ -1,5 +1,6 @@
 import path from 'path';
 import { fileURLToPath } from 'url';
+import fs from 'fs';
 import dotenv from 'dotenv';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -75,6 +76,21 @@ app.use('/api/escalations', escalationRoutes);
 app.use('/api/schedules', scheduleRoutes);
 app.use('/api/audit', auditRoutes);
 app.use('/api/messages', messageRoutes);
+
+// Serve compiled frontend in production if client/dist exists
+const clientDistPath = path.resolve(__dirname, '../../client/dist');
+if (fs.existsSync(clientDistPath)) {
+  console.log(`[Production] Serving static client build from ${clientDistPath}`);
+  app.use(express.static(clientDistPath));
+
+  // SPA fallback for all non-API GET requests
+  app.get('*', (req, res) => {
+    if (req.path.startsWith('/api')) {
+      return res.status(404).json({ error: 'Endpoint not found' });
+    }
+    res.sendFile(path.join(clientDistPath, 'index.html'));
+  });
+}
 
 // Start listening immediately so port 4000 is open without socket drops
 if (process.env.NODE_ENV !== 'test') {

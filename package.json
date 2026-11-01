@@ -5,6 +5,8 @@
   "private": true,
   "scripts": {
     "dev": "concurrently \"npm run dev --prefix server\" \"npm run dev --prefix client\"",
+    "postinstall": "npm install --prefix client && npm install --prefix server",
+    "install:all": "npm install --prefix client && npm install --prefix server",
     "build": "npm run build --prefix client",
     "start": "npm run start --prefix server",
     "test": "npm run test --prefix server",
@@ -14,4 +16,3 @@
     "concurrently": "^8.2.2"
   }
 }
-
