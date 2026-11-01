@@ -10,7 +10,7 @@ export async function runSeed({ pool: passedPool, exitOnComplete = false } = {})
   console.log('[Seed] Starting deterministic synthetic database seed...');
   let pool = passedPool;
   if (!pool) {
-    await initDb();
+    await initDb({ skipAutoSeed: true });
     pool = getPool();
   }
 

@@ -12,19 +12,27 @@ dotenv.config({ path: path.resolve(__dirname, '../../.env') });
 let pool = null;
 
 function getDbConfig() {
-  // 1. Support full connection URLs provided by Railway (MYSQL_URL, MYSQLPRIVATEURL, DATABASE_URL)
+  // 1. Support full connection URLs provided by Railway / Render / TiDB (MYSQL_URL, MYSQLPRIVATEURL, DATABASE_URL)
   const connectionUrl = process.env.MYSQLPRIVATEURL || process.env.MYSQL_URL || process.env.DATABASE_URL;
   if (connectionUrl) {
     try {
       const parsed = new URL(connectionUrl);
+      let database = (parsed.pathname || '').replace(/^\//, '') || 'test';
+      if (database === 'sys') database = 'test'; // sys is a read-only metadata catalog in MySQL/TiDB
+
+      const isCloudHost = parsed.hostname.includes('tidbcloud.com') || parsed.hostname.includes('aivencloud.com') || parsed.hostname.includes('rlwy.net');
+      const ssl = parsed.searchParams.get('ssl') === 'false' 
+        ? undefined 
+        : (isCloudHost || process.env.DB_SSL === 'true' ? { minVersion: 'TLSv1.2', rejectUnauthorized: true } : undefined);
+
       return {
         isCloud: true,
         host: parsed.hostname,
         port: Number(parsed.port) || 3306,
         user: decodeURIComponent(parsed.username || 'root'),
         password: decodeURIComponent(parsed.password || ''),
-        database: (parsed.pathname || '').replace(/^\//, '') || 'railway',
-        ssl: parsed.searchParams.get('ssl') === 'false' ? undefined : (process.env.DB_SSL === 'true' ? { rejectUnauthorized: false } : undefined)
+        database,
+        ssl
       };
     } catch (e) {
       console.warn('[Database] Could not parse connection URL, falling back to env variables:', e.message);
@@ -42,7 +50,7 @@ function getDbConfig() {
   return { isCloud, host, port, user, password, database };
 }
 
-export async function initDb() {
+export async function initDb({ skipAutoSeed = false } = {}) {
   const config = getDbConfig();
 
   // Step 1: For local environments, ensure DB exists if needed
@@ -97,15 +105,17 @@ export async function initDb() {
   }
 
   // Step 5: Check if this is a fresh database requiring initial seeding
-  try {
-    const [rows] = await pool.query('SELECT COUNT(*) as cnt FROM users');
-    if (rows && rows[0] && rows[0].cnt === 0) {
-      console.log('[Database] Fresh database detected (0 users). Auto-seeding initial synthetic clinical data...');
-      await runSeed({ pool, exitOnComplete: false });
-      console.log('[Database] Auto-seeding completed successfully.');
+  if (!skipAutoSeed) {
+    try {
+      const [rows] = await pool.query('SELECT COUNT(*) as cnt FROM users');
+      if (rows && rows[0] && rows[0].cnt === 0) {
+        console.log('[Database] Fresh database detected (0 users). Auto-seeding initial synthetic clinical data...');
+        await runSeed({ pool, exitOnComplete: false });
+        console.log('[Database] Auto-seeding completed successfully.');
+      }
+    } catch (err) {
+      console.warn('[Database] Seed check warning:', err.message);
     }
-  } catch (err) {
-    console.warn('[Database] Seed check warning:', err.message);
   }
 
   console.log(`[Database] MySQL connected and tables verified on ${config.database}`);
